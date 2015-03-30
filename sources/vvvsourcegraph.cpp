@@ -187,15 +187,22 @@ void BlockSwitch::expand(vertex_t begin, vertex_t end, vertex_t onReturn, vertex
         case 1: groupedChildren[0]->expand(vertex,end,onReturn, end, onContinue); break;
         default: {  size_t i = numChildren-1;
                     if(groupedChildren[i]->getType() != SEMANTIC_BLOCK_TYPE::BREAK)
+                    {
                         groupedChildren[i]->expand(vertex,end,onReturn,end,onContinue);
+                        boost::remove_edge(vertex,groupedChildren[i]->getVertex(), graph);
+                    }
                     do {
                         --i;
                         auto& currentChild  = groupedChildren[i];
                         auto& nextChild     = groupedChildren[i+1];
                         const auto localend = (nextChild->getType() == SEMANTIC_BLOCK_TYPE::BREAK) ? end :
                                                                                                      nextChild->getVertex();
-                        if(currentChild->getType() != SEMANTIC_BLOCK_TYPE::BREAK)
+                        const auto currentChildType = currentChild->getType();
+                        if(currentChildType != SEMANTIC_BLOCK_TYPE::BREAK){
                             currentChild->expand(vertex, localend, onReturn, end, onContinue);  // TODO: connect children to each other, not to vertex
+                            if(     currentChildType != SEMANTIC_BLOCK_TYPE::CASE 
+                                &&  currentChildType != SEMANTIC_BLOCK_TYPE::DEFAULT)
+                                boost::remove_edge(vertex, currentChild->getVertex(), graph); }
                     }while(i!=0);
                 }
                 break;};
