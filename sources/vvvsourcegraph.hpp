@@ -405,6 +405,16 @@ class myEdgeLabler
         const Graph& g;
 };
 
+class myGraphPropertyWriter
+{
+    public:
+        void operator()(std::ostream& out) const
+        {
+            out << "graph [fontname = \"monospace\"]" <<std::endl;
+            out << "node [fontname = \"monospace\"]" <<std::endl;
+            out << "edge [fontname = \"monospace\"]" <<std::endl;
+        }
+};
 
 std::shared_ptr<SemanticVertex> 
 getSemanticVertexFromStmt(const clang::Stmt* stmt, Graph& graph, const clang::ASTContext& context);

@@ -126,11 +126,27 @@ void BlockCompound::expand(vertex_t begin, vertex_t end, vertex_t onReturn, vert
     vertex = groupedChildren[0]->getVertex();
 }
 
+static 
+string joinStringsWith( const vector<string>& v, const string& delimiter)
+{
+    string ret;
+    const auto numStrings = v.size();    
+    const auto numStrings_1 = numStrings-1;
+    for(size_t i = 0; i < numStrings; ++i) {
+        ret += v[i];
+        if( i!= numStrings_1) ret += delimiter; }
+
+    return ret;
+}
+
 void BlockSimpleCompound::expand(vertex_t begin, vertex_t end, vertex_t onReturn, vertex_t onBreak, vertex_t onContinue)
 {
     std::string caption;
+    vector<string> v;
     for(const auto& stmt: stmts)
-        caption += "\n" + stmt->toString();
+        v.push_back(stmt->toString());
+    caption = joinStringsWith(v,"\n");
+        //caption += "\n" + stmt->toString();
     vertex = addProcessVertex( graph, caption );
     boost::add_edge( begin, vertex, graph);
     boost::add_edge( vertex,   end, graph);
@@ -226,18 +242,6 @@ static std::pair<vector<string>,const Stmt*> getConditions(const CaseStmt* stmt,
     return ret;
 }
 
-static 
-string joinStringsWith( const vector<string>& v, const string& delimiter)
-{
-    string ret;
-    const auto numStrings = v.size();    
-    const auto numStrings_1 = numStrings-1;
-    for(size_t i = 0; i < numStrings; ++i) {
-        ret += v[i];
-        if( i!= numStrings_1) ret += delimiter; }
-
-    return ret;
-}
 
 void BlockCase::expand(vertex_t begin, vertex_t end, vertex_t onReturn, vertex_t onBreak, vertex_t onContinue)
 {

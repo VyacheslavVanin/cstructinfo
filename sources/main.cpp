@@ -38,7 +38,7 @@ class FindNamedClassConsumer : public ASTConsumer
                 boost::copy_graph(g, bigGraph);
                 }
 
-            boost::write_graphviz( std::cout, bigGraph, myLabler( bigGraph ), myEdgeLabler(bigGraph) );
+            boost::write_graphviz( std::cout, bigGraph, myLabler( bigGraph ), myEdgeLabler(bigGraph), myGraphPropertyWriter() );
             /*const auto recordDeclsInMain = filterStructs( declsInMain );
             for( const auto& d : recordDeclsInMain )
                 printStructure( d );*/
