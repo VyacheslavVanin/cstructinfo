@@ -244,26 +244,23 @@ void BlockCase::expand(vertex_t begin, vertex_t end, vertex_t onReturn, vertex_t
     auto condition = getConditions( stmt, context );
 
     auto statements = getSemanticVertexFromStmt( condition.second, graph, context);
-    statements->expand( begin, end, onReturn, onBreak, onContinue ); 
+         statements->expand( begin, end, onReturn, onBreak, onContinue ); 
 
     vertex = statements->getVertex();
     boost::remove_edge( begin, vertex, graph );
     auto beginvertex = boost::add_edge( begin, vertex, graph).first;
     graph[beginvertex].text = joinStringsWith( condition.first, ", " ); 
-
-/*
-    vertex = addConditionVertex( graph, "CASE");
-    auto beginvertex = boost::add_edge( begin, vertex, graph).first;
-    boost::add_edge( vertex, end, graph);
-    graph[beginvertex].text = joinStringsWith( condition.first, ", " ); 
-    */
 }
 
 void BlockDefault::expand(vertex_t begin, vertex_t end, vertex_t onReturn, vertex_t onBreak, vertex_t onContinue)
 {
-    vertex = addConditionVertex( graph, "default: ");
-    boost::add_edge( begin, vertex, graph);
-    boost::add_edge( vertex, end, graph);
+    auto statements = getSemanticVertexFromStmt( stmt->getSubStmt(), graph, context);
+         statements->expand( begin, end, onReturn, onBreak, onContinue ); 
+
+    vertex = statements->getVertex();
+    boost::remove_edge( begin, vertex, graph );
+    auto beginvertex = boost::add_edge( begin, vertex, graph).first;
+    graph[beginvertex].text = "default";
 }
 
 
