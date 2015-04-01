@@ -23,6 +23,12 @@ inline std::string decl2str(const D* d, const ASTContext& context )
     return std::string(sm.getCharacterData(b), sm.getCharacterData(e) - sm.getCharacterData(b));
 }
 
+inline
+bool isSystemDecl(const Decl* d)
+{
+    return d->getASTContext().getSourceManager().isInSystemHeader(d->getLocStart()); 
+}
+
 inline 
 std::vector<const Decl*> getDeclarations(const ASTContext& context)
 {
