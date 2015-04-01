@@ -3,6 +3,7 @@
 using namespace clang;
 using namespace std;
 
+std::atomic_uint_least64_t VertexData::counter(0);
 
 
 shared_ptr<SemanticVertex> 
@@ -52,7 +53,10 @@ void BlockIf::expand(vertex_t begin, vertex_t end, vertex_t onReturn, vertex_t o
 
 void BlockCall::expand(vertex_t begin, vertex_t end, vertex_t onReturn, vertex_t onBreak, vertex_t onContinue)
 {   
-    vertex = addProcessVertex( graph, decl2str( stmt, context ) );
+    auto contents = decl2str( stmt, context );
+    if( isSystemDecl( stmt->getCalleeDecl() ) )
+        contents += "(system call)";
+    vertex = addProcessVertex( graph, contents );
     boost::add_edge( begin, vertex, graph );
     boost::add_edge( vertex, end, graph );
 }
@@ -194,7 +198,7 @@ void BlockSwitch::expand(vertex_t begin, vertex_t end, vertex_t onReturn, vertex
     vertex = addConditionVertex( graph, decl2str(stmt->getCond(), context) ); 
     boost::add_edge( begin, vertex, graph);
 
-    auto children = getCompoundStmtChildren( stmt->getBody() );  
+    const auto children = getCompoundStmtChildren( stmt->getBody() );  
     const auto groupedChildren = groupChildren(children, graph, context);
     const auto numChildren = groupedChildren.size();
    
@@ -209,15 +213,15 @@ void BlockSwitch::expand(vertex_t begin, vertex_t end, vertex_t onReturn, vertex
                     }
                     do {
                         --i;
-                        auto& currentChild  = groupedChildren[i];
-                        auto& nextChild     = groupedChildren[i+1];
+                        const auto& currentChild  = groupedChildren[i];
+                        const auto& nextChild     = groupedChildren[i+1];
                         const auto localend = (nextChild->getType() == SEMANTIC_BLOCK_TYPE::BREAK) ? end :
                                                                                                      nextChild->getVertex();
                         const auto currentChildType = currentChild->getType();
                         if(currentChildType != SEMANTIC_BLOCK_TYPE::BREAK){
-                            currentChild->expand(vertex, localend, onReturn, end, onContinue);  // TODO: connect children to each other, not to vertex
+                            currentChild->expand(vertex, localend, onReturn, end, onContinue);  
                             if(     currentChildType != SEMANTIC_BLOCK_TYPE::CASE 
-                                &&  currentChildType != SEMANTIC_BLOCK_TYPE::DEFAULT)
+                                &&  currentChildType != SEMANTIC_BLOCK_TYPE::DEFAULT) // Only case and default statements left connected to condition block
                                 boost::remove_edge(vertex, currentChild->getVertex(), graph); }
                     }while(i!=0);
                 }
