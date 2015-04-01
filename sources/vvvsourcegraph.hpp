@@ -59,13 +59,21 @@ using Graph     = boost::adjacency_list<boost::listS,boost::vecS,boost::directed
 using vertex_t  = boost::graph_traits<Graph>::vertex_descriptor; 
 using edge_t    = boost::graph_traits<Graph>::edge_descriptor; 
 
+template<class C>
+inline 
+std::pair<vertex_t, C*> addFlowchartVertex( Graph& g, const std::string& text = "")
+{
+    vertex_t ret = add_vertex( g );
+    auto p = new C();
+    g[ret].reset( p );
+    g[ret]->text = text;
+    return std::make_pair(ret, p);
+}
 
 inline
 vertex_t addProcessVertex(Graph& g, const std::string& text = "")
 {
-    vertex_t ret = add_vertex(g);
-    g[ret].reset( new BlockProcess() );
-    g[ret]->text = text;
+    vertex_t ret = addFlowchartVertex<BlockProcess>(g, text).first;
     return ret;
 }
 

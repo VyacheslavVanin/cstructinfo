@@ -47,7 +47,7 @@ class operatorVisitor : public boost::default_dfs_visitor
             auto id = currentVertex->getID();
             auto contents = currentVertex->text;
             std::string label; // TODO: generate label
-            operatorTable.insert(  std::pair<uint64_t,OperatorDescriptor>(id, OperatorDescriptor(label, contents)) );
+            operatorTable.insert( std::make_pair(id, OperatorDescriptor(label, contents)) );
         }
     private:
         operatorTableType& operatorTable;
