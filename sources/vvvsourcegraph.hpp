@@ -8,24 +8,93 @@
 #include <cstdint>
 #include <atomic>
 #include <boost/graph/adjacency_list.hpp>
+#include <boost/graph/depth_first_search.hpp>
 #include "graphhelper.hpp"
 #include "vvvclanghelper.hpp"
 #include <clang/AST/AST.h>
 
+#define RUK_CONDITION_PREFIX    "ЛО."
+#define RUK_OPERTAOR_PREFIX     "ВП."
+#define RUK_LOOP_PREFIX         "Ц."
+#define RUK_SUBPROGRAM_PREFIX   "ПП."
+#define RUK_TRUE_BRANCH_TEXT    "да"
+#define RUK_FALSE_BRANCH_TEXT   "нет" 
+
+enum class SEMANTIC_BLOCK_TYPE : int
+{
+    SIMPLE,
+    IF,
+    CALL,
+    RETURN,
+    BREAK,
+    CONTINUE,
+    COMPOUND,
+    SIMPLECOMPOUND,
+    FOR,
+    WHILE,
+    DOWHILE,
+    LOOPCLOSE,
+    SWITCH,
+    CASE,
+    DEFAULT
+};
+
+class VariableDescription
+{
+    public:
+        VariableDescription(const clang::VarDecl* decl) : 
+            decl(decl), name(decl->getNameAsString()), type(decl->getType().getAsString()) {}
+
+        const std::string& getName() const {return name;}
+        const std::string& getType() const {return type;}
+
+    private:
+        const clang::VarDecl*   decl;
+        std::string             name;
+        std::string             type;
+};
+
+class OperatorDescriptor
+{
+    public:
+        OperatorDescriptor(const std::string& label, const std::string& contents) : label(label), contents(contents) {}
+        OperatorDescriptor(const OperatorDescriptor&) = default;
+
+        const std::string& getLabel()    const  { return label;     }
+        const std::string& getContents() const  { return contents;  }
+    private:
+        std::string label;
+        std::string contents;
+};
+
+using operatorTableType = std::map<uint64_t, OperatorDescriptor>;
 
 class GraphData
 {
     public:
-        std::string text;
+        operatorTableType   operatorTable;
+    private:
+        uint32_t mutable    conditionNumerator = 0;
+        uint32_t mutable    operatorNumerator = 0;
+        uint32_t mutable    loopNumerator = 0;
+        uint32_t mutable    subprogramNumerator = 0;
+
+    public: 
+        std::string getConditionLabel() const { return std::string(RUK_CONDITION_PREFIX) + std::to_string(++conditionNumerator); }
+        std::string getOperatorLabel()  const { return std::string(RUK_OPERTAOR_PREFIX)  + std::to_string(++operatorNumerator); }
+        std::string getLoopLabel()      const { return std::string(RUK_LOOP_PREFIX)      + std::to_string(++loopNumerator); }
+        std::string getSubprogramLabel()const { return std::string(RUK_SUBPROGRAM_PREFIX)+ std::to_string(++subprogramNumerator); }
 };
 
 class VertexData{
     public:
-        VertexData() : id( ++counter ) {}
+        VertexData() : label(), id( ++counter ) {}
         uint64_t getID() const {return id;}
-        std::string text;
         virtual ~VertexData(){};
         virtual std::string getShape(){ return "Circle";}
+
+        std::string         label;
+        //SEMANTIC_BLOCK_TYPE type;
     private:
         static std::atomic_uint_least64_t counter;
         uint64_t id;
@@ -35,6 +104,53 @@ struct EdgeData{
     std::string text;
 };
 
+using Graph     = boost::adjacency_list<boost::listS,boost::vecS,boost::directedS, std::shared_ptr<VertexData>, EdgeData, GraphData>;
+using vertex_t  = boost::graph_traits<Graph>::vertex_descriptor; 
+using edge_t    = boost::graph_traits<Graph>::edge_descriptor; 
+
+
+
+Graph createFlowChart(const clang::FunctionDecl* fdecl);
+class operatorVisitor : public boost::default_dfs_visitor
+{
+    public:
+        operatorVisitor(operatorTableType& operatorTable) : operatorTable(operatorTable) {}
+        void discover_vertex(vertex_t v, const Graph& g) const
+        {
+            /*const auto &currentVertex = g[v];
+            auto id = currentVertex->getID();
+            auto contents = currentVertex->contents;
+            std::string label; // TODO: generate label
+            operatorTable.insert( std::make_pair(id, OperatorDescriptor(label, contents)) );
+            */
+        }
+    private:
+        operatorTableType& operatorTable;
+};
+
+class FunctionDescription
+{
+    public:
+        FunctionDescription(const clang::FunctionDecl* fdecl) 
+            : name(fdecl->getNameAsString()), returnType(fdecl->getResultType().getAsString()),
+              flowChart(createFlowChart(fdecl)) 
+    {
+        for(const auto& p : getFunctionParams(fdecl) ) 
+            parameters.push_back( p );
+
+        // TODO: construct operator table
+        boost::depth_first_search( flowChart, boost::visitor(operatorVisitor(operatorTable)) );
+    }
+
+    private:
+        std::string name;
+        std::vector<VariableDescription> parameters;
+        std::string returnType;
+        Graph flowChart;                                     // Граф блок-схемы
+        operatorTableType operatorTable; // Таблица операторов
+};
+
+
 class BlockBegin : public VertexData {
     public: virtual  std::string getShape()override { return "ellipse";} };
 
@@ -43,7 +159,6 @@ class BlockEnd : public VertexData {
 
 class BlockProcess: public VertexData {
     public: virtual  std::string getShape()override { return "rectangle";} };
-
 
 class BlockCondition: public VertexData {
     public: virtual  std::string getShape()override { return "diamond";} };
@@ -55,9 +170,6 @@ class BlockLoopClose : public VertexData {
     public: virtual  std::string getShape()override { return "invtrapezium";} };
 
 
-using Graph     = boost::adjacency_list<boost::listS,boost::vecS,boost::directedS, std::shared_ptr<VertexData>, EdgeData, GraphData>;
-using vertex_t  = boost::graph_traits<Graph>::vertex_descriptor; 
-using edge_t    = boost::graph_traits<Graph>::edge_descriptor; 
 
 template<class C>
 inline 
@@ -66,7 +178,7 @@ std::pair<vertex_t, C*> addFlowchartVertex( Graph& g, const std::string& text = 
     vertex_t ret = add_vertex( g );
     auto p = new C();
     g[ret].reset( p );
-    g[ret]->text = text;
+    g[ret]->label = text;
     return std::make_pair(ret, p);
 }
 
@@ -82,7 +194,7 @@ vertex_t addConditionVertex(Graph& g, const std::string& text = "")
 {
     vertex_t ret = add_vertex(g);
     g[ret].reset( new BlockCondition() );
-    g[ret]->text = text;
+    g[ret]->label = text;
     return ret;
 }
 
@@ -91,7 +203,7 @@ vertex_t addBeginVertex(Graph& g, const std::string& text="Begin")
 {
     vertex_t ret = add_vertex(g);
     g[ret].reset( new BlockBegin() );
-    g[ret]->text = text;
+    g[ret]->label = text;
     return ret;
 }
 
@@ -100,7 +212,7 @@ vertex_t addEndVertex(Graph& g, const std::string& text="End")
 {
     vertex_t ret = add_vertex(g);
     g[ret].reset( new BlockEnd() );
-    g[ret]->text = text;
+    g[ret]->label = text;
     return ret;
 }
 
@@ -109,7 +221,7 @@ vertex_t addLoopOpenVertex(Graph& g, const std::string& text="Loop name\nconditi
 {
     vertex_t ret = add_vertex(g);
     g[ret].reset( new BlockLoopOpen() );
-    g[ret]->text = text;
+    g[ret]->label = text;
     return ret;
 }
 
@@ -118,28 +230,11 @@ vertex_t addLoopCloseVertex(Graph& g, const std::string& text="Loop name")
 {
     vertex_t ret = add_vertex(g);
     g[ret].reset( new BlockLoopClose() );
-    g[ret]->text = text;
+    g[ret]->label = text;
     return ret;
 }
 
 
-enum class SEMANTIC_BLOCK_TYPE : int
-{
-    SIMPLE,
-    IF,
-    CALL,
-    RETURN,
-    BREAK,
-    CONTINUE,
-    COMPOUND,
-    SIMPLECOMPOUND,
-    FOR,
-    WHILE,
-    DOWHILE,
-    SWITCH,
-    CASE,
-    DEFAULT
-};
 
 class SemanticVertex
 {
@@ -151,7 +246,7 @@ class SemanticVertex
                             vertex_t onReturn, vertex_t onBreak, vertex_t onContinue)
                          { boost::add_edge( begin, end, graph); }
 
-        vertex_t getVertex()const {return vertex;}
+        vertex_t getVertex()    const {return vertex;}
         virtual SEMANTIC_BLOCK_TYPE getType()  const = 0;
         virtual std::string         toString() const = 0;
 
@@ -168,7 +263,7 @@ class BlockIf : public SemanticVertex
         
         void expand(vertex_t begin, vertex_t end, vertex_t onReturn, vertex_t onBreak, vertex_t onContinue);
 
-        SEMANTIC_BLOCK_TYPE getType()  const { return SEMANTIC_BLOCK_TYPE::IF;}
+        SEMANTIC_BLOCK_TYPE getType()  const { return SEMANTIC_BLOCK_TYPE::IF;   }
         std::string         toString() const { return decl2str( stmt, context ); }
 
     private:
@@ -176,7 +271,7 @@ class BlockIf : public SemanticVertex
         const clang::ASTContext& context;
 };
 
-class BlockCall: public SemanticVertex
+ class BlockCall: public SemanticVertex
 {
     public:
         BlockCall( Graph& g, const clang::Stmt* stmt, const clang::ASTContext& context) 
@@ -405,7 +500,7 @@ class myLabler
 
         template<class V>
         void operator()(std::ostream& out, const V& v) const {
-                        out << "[label=\"" << escapeQuates( g[v]->text ) << "\""
+                        out << "[label=\"" << escapeQuates( g[v]->label ) << "\""
                             << " shape=\"" << g[v]->getShape() << "\"" 
                             << "]";}
     private:
