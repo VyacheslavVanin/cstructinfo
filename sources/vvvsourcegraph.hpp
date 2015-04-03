@@ -20,6 +20,14 @@
 #define RUK_TRUE_BRANCH_TEXT    "да"
 #define RUK_FALSE_BRANCH_TEXT   "нет" 
 
+enum class LABEL_TYPE : int
+{
+    OPERATOR,
+    CONDITION,
+    LOOP,
+    SUBPROGRAM
+};
+
 enum class SEMANTIC_BLOCK_TYPE : int
 {
     SIMPLE,
@@ -39,6 +47,15 @@ enum class SEMANTIC_BLOCK_TYPE : int
     DEFAULT
 };
 
+class GraphData;
+class VertexData;
+struct EdgeData;
+
+using Graph     = boost::adjacency_list<boost::listS,boost::vecS,boost::directedS, std::shared_ptr<VertexData>, EdgeData, GraphData>;
+using vertex_t  = boost::graph_traits<Graph>::vertex_descriptor; 
+using edge_t    = boost::graph_traits<Graph>::edge_descriptor; 
+
+
 class VariableDescription
 {
     public:
@@ -57,26 +74,32 @@ class VariableDescription
 class OperatorDescriptor
 {
     public:
-        OperatorDescriptor(const std::string& label, const std::string& contents) : label(label), contents(contents) {}
+        OperatorDescriptor() = default;
+        OperatorDescriptor(LABEL_TYPE type, const std::string& label, const std::string& contents) : type(type), label(label), contents(contents) {}
+        OperatorDescriptor(LABEL_TYPE type, const std::string& contents) : type(type), contents(contents) {}
         OperatorDescriptor(const OperatorDescriptor&) = default;
+
+        void setLabel(const std::string& str)   { label = str; } 
+        LABEL_TYPE getType() const {return type;}
 
         const std::string& getLabel()    const  { return label;     }
         const std::string& getContents() const  { return contents;  }
     private:
+        LABEL_TYPE type;
         std::string label;
         std::string contents;
 };
 
-using operatorTableType = std::map<uint64_t, OperatorDescriptor>;
+using operatorTableType = std::map<vertex_t, OperatorDescriptor>;
 
 class GraphData
 {
     public:
         operatorTableType   operatorTable;
     private:
-        uint32_t mutable    conditionNumerator = 0;
-        uint32_t mutable    operatorNumerator = 0;
-        uint32_t mutable    loopNumerator = 0;
+        uint32_t mutable    conditionNumerator  = 0;
+        uint32_t mutable    operatorNumerator   = 0;
+        uint32_t mutable    loopNumerator       = 0;
         uint32_t mutable    subprogramNumerator = 0;
 
     public: 
@@ -88,25 +111,21 @@ class GraphData
 
 class VertexData{
     public:
-        VertexData() : label(), id( ++counter ) {}
-        uint64_t getID() const {return id;}
+        VertexData() : label()/*, id( ++counter )*/ {}
+        //uint64_t getID() const { return id; }
         virtual ~VertexData(){};
         virtual std::string getShape(){ return "Circle";}
-
+        virtual vertex_t    getOpenOperator() const { return boost::graph_traits<Graph>::null_vertex(); }
         std::string         label;
-        //SEMANTIC_BLOCK_TYPE type;
     private:
-        static std::atomic_uint_least64_t counter;
-        uint64_t id;
+        //static std::atomic_uint_least64_t counter;
+        //uint64_t id;
 };
 
 struct EdgeData{
     std::string text;
 };
 
-using Graph     = boost::adjacency_list<boost::listS,boost::vecS,boost::directedS, std::shared_ptr<VertexData>, EdgeData, GraphData>;
-using vertex_t  = boost::graph_traits<Graph>::vertex_descriptor; 
-using edge_t    = boost::graph_traits<Graph>::edge_descriptor; 
 
 
 
@@ -117,16 +136,32 @@ class operatorVisitor : public boost::default_dfs_visitor
         operatorVisitor(operatorTableType& operatorTable) : operatorTable(operatorTable) {}
         void discover_vertex(vertex_t v, const Graph& g) const
         {
-            /*const auto &currentVertex = g[v];
-            auto id = currentVertex->getID();
-            auto contents = currentVertex->contents;
-            std::string label; // TODO: generate label
-            operatorTable.insert( std::make_pair(id, OperatorDescriptor(label, contents)) );
-            */
+            auto& graphProp = g.m_property;
+            auto& currentVertex = g[v];
+            auto  openVertex = currentVertex->getOpenOperator();
+            if( openVertex == boost::graph_traits<Graph>::null_vertex() )
+            {
+                if( operatorTable.count(v) == 0 ) return;
+                auto& currentDesc = operatorTable.at(v);
+                std::string label;
+                switch( currentDesc.getType() ) {
+                    case LABEL_TYPE::OPERATOR:  label = graphProp->getOperatorLabel();  break;
+                    case LABEL_TYPE::CONDITION: label = graphProp->getConditionLabel(); break;
+                    case LABEL_TYPE::LOOP:      label = graphProp->getLoopLabel();      break;
+                    case LABEL_TYPE::SUBPROGRAM:label = graphProp->getSubprogramLabel(); break; }
+                currentDesc.setLabel( label );
+                currentVertex->label = label;
+            }
+            else
+            {
+                currentVertex->label = operatorTable[ openVertex ].getLabel();
+            }
         }
     private:
         operatorTableType& operatorTable;
 };
+
+
 
 class FunctionDescription
 {
@@ -138,16 +173,18 @@ class FunctionDescription
         for(const auto& p : getFunctionParams(fdecl) ) 
             parameters.push_back( p );
 
+        auto& opTable = flowChart.m_property->operatorTable;
         // TODO: construct operator table
-        boost::depth_first_search( flowChart, boost::visitor(operatorVisitor(operatorTable)) );
+        boost::depth_first_search( flowChart, boost::visitor(operatorVisitor(opTable)) );     
     }
+
+        const Graph& getFlowChart() const {return flowChart;}
 
     private:
         std::string name;
         std::vector<VariableDescription> parameters;
         std::string returnType;
-        Graph flowChart;                                     // Граф блок-схемы
-        operatorTableType operatorTable; // Таблица операторов
+        Graph flowChart;                        
 };
 
 
@@ -167,7 +204,10 @@ class BlockLoopOpen : public VertexData {
     public: virtual  std::string getShape()override { return "trapezium";} };
 
 class BlockLoopClose : public VertexData {
-    public: virtual  std::string getShape()override { return "invtrapezium";} };
+    public: BlockLoopClose(vertex_t closeWhat) : closeWhat(closeWhat) {}
+            virtual  std::string getShape()override { return "invtrapezium";} 
+            virtual  vertex_t    getOpenOperator() const override {return closeWhat;}   
+    private: vertex_t closeWhat; };
 
 
 
@@ -226,10 +266,10 @@ vertex_t addLoopOpenVertex(Graph& g, const std::string& text="Loop name\nconditi
 }
 
 inline
-vertex_t addLoopCloseVertex(Graph& g, const std::string& text="Loop name")
+vertex_t addLoopCloseVertex(Graph& g, vertex_t closeWhat, const std::string& text="Loop name")
 {
     vertex_t ret = add_vertex(g);
-    g[ret].reset( new BlockLoopClose() );
+    g[ret].reset( new BlockLoopClose(closeWhat) );
     g[ret]->label = text;
     return ret;
 }
@@ -243,12 +283,20 @@ class SemanticVertex
         virtual ~SemanticVertex(){}
         
         virtual vertex_t expand(vertex_t begin, vertex_t end, 
-                            vertex_t onReturn, vertex_t onBreak, vertex_t onContinue)
+                                vertex_t onReturn, vertex_t onBreak, vertex_t onContinue)
                          { return end; }
 
         vertex_t getVertex()    const {return vertex;}
+
+        void addToTable( LABEL_TYPE t, const std::string& contents ) 
+        { 
+            graph.m_property->operatorTable[vertex] =  OperatorDescriptor( t, contents); 
+        }  
+
         virtual SEMANTIC_BLOCK_TYPE getType()  const = 0;
         virtual std::string         toString() const = 0;
+        
+
 
     protected:
         Graph& graph;

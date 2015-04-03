@@ -3,8 +3,6 @@
 using namespace clang;
 using namespace std;
 
-std::atomic_uint_least64_t VertexData::counter(0);
-
 
 shared_ptr<SemanticVertex> 
 getSemanticVertexFromStmt(const Stmt* stmt, Graph& graph, const clang::ASTContext& context)
@@ -33,12 +31,10 @@ getSemanticVertexFromStmt(const Stmt* stmt, Graph& graph, const clang::ASTContex
 
 vertex_t BlockIf::expand(vertex_t begin, vertex_t end, vertex_t onReturn, vertex_t onBreak, vertex_t onContinue)
 {
-    auto&       graphProp      = graph.m_property;
-    const std::string label    = graphProp->getConditionLabel();
     const std::string contents = decl2str( stmt->getCond(),context );
     
-    vertex = addConditionVertex( graph, label ); // TODO перенести создание вершины на графе в конструктор (сможем конектить к нему другие вершины)
-    graphProp->operatorTable.insert( std::make_pair( graph[vertex]->getID(), OperatorDescriptor(label,contents)) );
+    vertex = addConditionVertex( graph ); 
+    addToTable( LABEL_TYPE::CONDITION, contents );
 
     auto thenStmt = getSemanticVertexFromStmt( stmt->getThen(), graph, context );
     auto elseStmt = getSemanticVertexFromStmt( stmt->getElse(), graph, context );
@@ -60,40 +56,31 @@ vertex_t BlockIf::expand(vertex_t begin, vertex_t end, vertex_t onReturn, vertex
 
 vertex_t BlockCall::expand(vertex_t begin, vertex_t end, vertex_t onReturn, vertex_t onBreak, vertex_t onContinue)
 {   
-    auto& graphProp = graph.m_property;
-    const std::string    label = graphProp->getSubprogramLabel();
-    const std::string contents = decl2str( stmt, context );
-
-    vertex = addProcessVertex( graph, label );
+    vertex = addProcessVertex( graph );
     boost::add_edge( vertex, end, graph );
 
-    graphProp->operatorTable.insert( std::make_pair( graph[vertex]->getID(), OperatorDescriptor(label,contents)) );
+    const std::string contents = decl2str( stmt, context );
+    addToTable( LABEL_TYPE::SUBPROGRAM, contents );
     return vertex;
 }
 
 vertex_t BlockReturn::expand(vertex_t begin, vertex_t end, vertex_t onReturn, vertex_t onBreak, vertex_t onContinue)
 {
-    auto& graphProp = graph.m_property;
-    const std::string    label = graphProp->getOperatorLabel();
-    const std::string contents = std::string("return ") + decl2str( stmt->getRetValue(), context );
-
-    vertex = addProcessVertex( graph, label  );
+    vertex = addProcessVertex( graph );
     boost::add_edge( vertex, onReturn, graph);
 
-    graphProp->operatorTable.insert( std::make_pair( graph[vertex]->getID(), OperatorDescriptor(label,contents)) );
+    const std::string contents = std::string("return ") + decl2str( stmt->getRetValue(), context );
+    addToTable( LABEL_TYPE::OPERATOR, contents );
     return vertex;
 }
 
 vertex_t BlockSimple::expand(vertex_t begin, vertex_t end, vertex_t onReturn, vertex_t onBreak, vertex_t onContinue)
 {
-    auto& graphProp = graph.m_property;
-    const std::string    label = graphProp->getOperatorLabel();
-    const std::string contents = decl2str( stmt, context );
-
-    vertex = addProcessVertex( graph, label );
+    vertex = addProcessVertex( graph );
     boost::add_edge( vertex, end, graph );
 
-    graphProp->operatorTable.insert( std::make_pair( graph[vertex]->getID(), OperatorDescriptor(label,contents)) );
+    const std::string contents = decl2str( stmt, context );
+    addToTable( LABEL_TYPE::OPERATOR, contents );
     return vertex;
 }
 
@@ -150,25 +137,20 @@ vertex_t BlockCompound::expand(vertex_t begin, vertex_t end, vertex_t onReturn, 
 
 vertex_t BlockSimpleCompound::expand(vertex_t begin, vertex_t end, vertex_t onReturn, vertex_t onBreak, vertex_t onContinue)
 {
-    auto& graphProp = graph.m_property;
-    const std::string    label = graphProp->getOperatorLabel();
-
     vector<string> v;
     for(const auto& stmt: stmts) v.push_back(stmt->toString());
     const std::string contents = joinStringsWith(v, "\n");
     
-    vertex = addProcessVertex( graph, label );
+    vertex = addProcessVertex( graph );
     boost::add_edge( vertex,   end, graph);
 
-    graphProp->operatorTable.insert( std::make_pair( graph[vertex]->getID(), OperatorDescriptor(label,contents)) );
+    addToTable( LABEL_TYPE::OPERATOR, contents );
 
     return vertex;
 }
 
 vertex_t BlockFor::expand(vertex_t begin, vertex_t end, vertex_t onReturn, vertex_t onBreak, vertex_t onContinue)
 {
-    auto& graphProp = graph.m_property;
-    const std::string    label = graphProp->getLoopLabel();
     const std::string contents = std::string("for( ") + 
                                  decl2str( stmt->getInit(), context ) + "; " +
                                  decl2str( stmt->getCond(), context ) + "; " +
@@ -177,8 +159,8 @@ vertex_t BlockFor::expand(vertex_t begin, vertex_t end, vertex_t onReturn, verte
     // add LoopOpen and LoopClose figures to flowchart 
     //     connect begin     -> LoopOpen and
     //             LoopClose -> end
-    vertex             = addLoopOpenVertex( graph, label );
-    auto endLoopVertex = addLoopCloseVertex(graph, label );
+    vertex             = addLoopOpenVertex( graph);
+    auto endLoopVertex = addLoopCloseVertex(graph, vertex);
     boost::add_edge( endLoopVertex, end, graph);
     
     // expand loop body
@@ -187,45 +169,41 @@ vertex_t BlockFor::expand(vertex_t begin, vertex_t end, vertex_t onReturn, verte
     boost::add_edge( vertex, bodyVertex, graph);
 
     // add loop data to operator table
-    graphProp->operatorTable.insert( std::make_pair( graph[vertex]->getID(), OperatorDescriptor(label,contents)) );
+    addToTable( LABEL_TYPE::LOOP, contents ); 
 
     return vertex;
 }
 
 vertex_t BlockWhile::expand(vertex_t begin, vertex_t end, vertex_t onReturn, vertex_t onBreak, vertex_t onContinue)
 {
-    auto& graphProp = graph.m_property;
-    const std::string    label = graphProp->getLoopLabel();
     const std::string contents = decl2str( stmt->getCond(), context);
 
-    vertex              = addLoopOpenVertex( graph, label);
-    auto endLoopVertex  = addLoopCloseVertex(graph, label);
+    vertex              = addLoopOpenVertex( graph);
+    auto endLoopVertex  = addLoopCloseVertex(graph, vertex);
     boost::add_edge( endLoopVertex, end, graph);
     
     auto body = getSemanticVertexFromStmt( stmt->getBody(), graph, context);
     auto bodyVertex = body->expand( vertex, endLoopVertex, onReturn, end, endLoopVertex ); 
     boost::add_edge( vertex, bodyVertex, graph );
 
-    graphProp->operatorTable.insert( std::make_pair( graph[vertex]->getID(), OperatorDescriptor(label,contents)) );
+    addToTable( LABEL_TYPE::LOOP, contents ); 
 
     return vertex;
 }
 
 vertex_t BlockDoWhile::expand(vertex_t begin, vertex_t end, vertex_t onReturn, vertex_t onBreak, vertex_t onContinue)
 {
-    auto& graphProp            = graph.m_property;
-    const std::string    label = graphProp->getLoopLabel();
     const std::string contents = std::string("do while: ") + decl2str( stmt->getCond(), context);
 
-    vertex             = addLoopOpenVertex( graph, label );
-    auto endLoopVertex = addLoopCloseVertex( graph, label);
+    vertex             = addLoopOpenVertex( graph );
+    auto endLoopVertex = addLoopCloseVertex( graph, vertex);
     boost::add_edge( endLoopVertex, end, graph);
     
     auto body = getSemanticVertexFromStmt( stmt->getBody(), graph, context);
     auto bodyVertex = body->expand( vertex, endLoopVertex, onReturn, end, endLoopVertex ); 
     boost::add_edge(vertex, bodyVertex, graph);
 
-    graphProp->operatorTable.insert( std::make_pair( graph[vertex]->getID(), OperatorDescriptor(label,contents)) );
+    addToTable( LABEL_TYPE::LOOP, contents ); 
 
     return vertex;
 }
@@ -233,13 +211,10 @@ vertex_t BlockDoWhile::expand(vertex_t begin, vertex_t end, vertex_t onReturn, v
 
 vertex_t BlockSwitch::expand(vertex_t begin, vertex_t end, vertex_t onReturn, vertex_t onBreak, vertex_t onContinue)
 {
-    auto& graphProp            = graph.m_property;
-    const std::string    label = graphProp->getConditionLabel();
     const std::string contents = std::string("switch: ") + decl2str( stmt->getCond(), context );
 
-    vertex = addConditionVertex( graph, label ); 
-
-    graphProp->operatorTable.insert( std::make_pair( graph[vertex]->getID(), OperatorDescriptor(label,contents)) );
+    vertex = addConditionVertex( graph ); 
+    addToTable( LABEL_TYPE::CONDITION, contents ); 
 
     const auto children = getCompoundStmtChildren( stmt->getBody() );  
     const auto groupedChildren = groupChildren(children, graph, context);
@@ -256,8 +231,8 @@ vertex_t BlockSwitch::expand(vertex_t begin, vertex_t end, vertex_t onReturn, ve
                         groupedChildren[i]->expand(vertex,end,onReturn,end,onContinue);
                         boost::remove_edge(vertex,groupedChildren[i]->getVertex(), graph);
                     }
-                    do {
-                        --i;
+                    while( i-- != 0 )
+                    {
                         const auto& currentChild  = groupedChildren[i];
                         const auto& nextChild     = groupedChildren[i+1];
                         const auto  localend = (nextChild->getType() == SEMANTIC_BLOCK_TYPE::BREAK) ? end 
@@ -266,9 +241,9 @@ vertex_t BlockSwitch::expand(vertex_t begin, vertex_t end, vertex_t onReturn, ve
                         if(currentChildType != SEMANTIC_BLOCK_TYPE::BREAK){
                             currentChild->expand(vertex, localend, onReturn, end, onContinue);  
                             if(     currentChildType != SEMANTIC_BLOCK_TYPE::CASE 
-                                &&  currentChildType != SEMANTIC_BLOCK_TYPE::DEFAULT) // Only case and default statements left connected to condition block
+                                    &&  currentChildType != SEMANTIC_BLOCK_TYPE::DEFAULT) // Only case and default statements left connected to condition block
                                 boost::remove_edge(vertex, currentChild->getVertex(), graph); }
-                    }while(i!=0);
+                    }
                 }
                 break;};
 
@@ -304,7 +279,7 @@ vertex_t BlockCase::expand(vertex_t begin, vertex_t end, vertex_t onReturn, vert
 
     boost::remove_edge( begin, vertex, graph );                          // TODO: TODO: TODO: TODO:TODO: TODO
     auto beginvertex = boost::add_edge( begin, vertex, graph).first;     // TODO: TODO: TODO: TODO:TODO: TODO
-    graph[beginvertex].text = joinStringsWith( condition.first, ", " );  // сделать это из switch             
+    graph[beginvertex].text = joinStringsWith( condition.first, ", " );  // do it from switch             
 
     return vertex;
 }
@@ -316,7 +291,7 @@ vertex_t BlockDefault::expand(vertex_t begin, vertex_t end, vertex_t onReturn, v
 
     boost::remove_edge( begin, vertex, graph );                       // TODO: TODO: TODO: TODO:TODO: TODO
     auto beginvertex = boost::add_edge( begin, vertex, graph).first;  // TODO: TODO: TODO: TODO:TODO: TODO
-    graph[beginvertex].text = "default";                              // сделать это из switch            
+    graph[beginvertex].text = "default";                              // do it from switch            
 
     return vertex;
 }
