@@ -242,9 +242,9 @@ class SemanticVertex
         explicit SemanticVertex( Graph& g ) :graph(g), vertex(-1) {}
         virtual ~SemanticVertex(){}
         
-        virtual void expand(vertex_t begin, vertex_t end, 
+        virtual vertex_t expand(vertex_t begin, vertex_t end, 
                             vertex_t onReturn, vertex_t onBreak, vertex_t onContinue)
-                         { boost::add_edge( begin, end, graph); }
+                         { return end; }
 
         vertex_t getVertex()    const {return vertex;}
         virtual SEMANTIC_BLOCK_TYPE getType()  const = 0;
@@ -261,7 +261,7 @@ class BlockIf : public SemanticVertex
         BlockIf( Graph& g, const clang::Stmt* stmt, const clang::ASTContext& context) 
             : SemanticVertex(g), stmt(static_cast<const clang::IfStmt*>(stmt)), context(context) {}
         
-        void expand(vertex_t begin, vertex_t end, vertex_t onReturn, vertex_t onBreak, vertex_t onContinue);
+        vertex_t expand(vertex_t begin, vertex_t end, vertex_t onReturn, vertex_t onBreak, vertex_t onContinue);
 
         SEMANTIC_BLOCK_TYPE getType()  const { return SEMANTIC_BLOCK_TYPE::IF;   }
         std::string         toString() const { return decl2str( stmt, context ); }
@@ -277,7 +277,7 @@ class BlockIf : public SemanticVertex
         BlockCall( Graph& g, const clang::Stmt* stmt, const clang::ASTContext& context) 
             : SemanticVertex(g), stmt(static_cast<const clang::CallExpr*>(stmt)), context(context) {}
         
-        void expand(vertex_t begin, vertex_t end, vertex_t onReturn, vertex_t onBreak, vertex_t onContinue);
+        vertex_t expand(vertex_t begin, vertex_t end, vertex_t onReturn, vertex_t onBreak, vertex_t onContinue);
 
         SEMANTIC_BLOCK_TYPE getType()  const { return SEMANTIC_BLOCK_TYPE::CALL;}
         std::string         toString() const { return decl2str( stmt, context ); }
@@ -293,7 +293,7 @@ class BlockReturn: public SemanticVertex
         BlockReturn( Graph& g, const clang::Stmt* stmt, const clang::ASTContext& context) 
             : SemanticVertex(g), stmt(static_cast<const clang::ReturnStmt*>(stmt)), context(context) {}
         
-        void expand(vertex_t begin, vertex_t end, vertex_t onReturn, vertex_t onBreak, vertex_t onContinue);
+        vertex_t expand(vertex_t begin, vertex_t end, vertex_t onReturn, vertex_t onBreak, vertex_t onContinue);
 
         SEMANTIC_BLOCK_TYPE getType()  const { return SEMANTIC_BLOCK_TYPE::RETURN;}
         std::string         toString() const { return decl2str( stmt, context ); }
@@ -307,7 +307,7 @@ class BlockBreak: public SemanticVertex
 {
     public:
         BlockBreak(Graph& g) :SemanticVertex(g) {};
-        void expand(vertex_t begin, vertex_t end, vertex_t onReturn, vertex_t onBreak, vertex_t onContinue);
+        vertex_t expand(vertex_t begin, vertex_t end, vertex_t onReturn, vertex_t onBreak, vertex_t onContinue);
 
         SEMANTIC_BLOCK_TYPE getType()  const { return SEMANTIC_BLOCK_TYPE::BREAK;}
         std::string         toString() const { return "break"; }
@@ -317,7 +317,7 @@ class BlockContinue: public SemanticVertex
 {
     public:
         BlockContinue(Graph& g) :SemanticVertex(g) {};
-        void expand(vertex_t begin, vertex_t end, vertex_t onReturn, vertex_t onBreak, vertex_t onContinue);
+        vertex_t expand(vertex_t begin, vertex_t end, vertex_t onReturn, vertex_t onBreak, vertex_t onContinue);
 
         SEMANTIC_BLOCK_TYPE getType()  const { return SEMANTIC_BLOCK_TYPE::CONTINUE;}
         std::string         toString() const { return "continue";}
@@ -329,7 +329,7 @@ class BlockSimple: public SemanticVertex
         BlockSimple( Graph& g, const clang::Stmt* stmt, const clang::ASTContext& context) 
             : SemanticVertex(g), stmt(stmt), context(context) {}
         
-        void expand(vertex_t begin, vertex_t end, vertex_t onReturn, vertex_t onBreak, vertex_t onContinue);
+        vertex_t expand(vertex_t begin, vertex_t end, vertex_t onReturn, vertex_t onBreak, vertex_t onContinue);
 
         SEMANTIC_BLOCK_TYPE getType()  const { return SEMANTIC_BLOCK_TYPE::SIMPLE;}
         std::string         toString() const { return decl2str( stmt, context ); }
@@ -345,7 +345,7 @@ class BlockCompound: public SemanticVertex
         BlockCompound(Graph& g, const clang::Stmt* stmt, const clang::ASTContext& context) 
             : SemanticVertex(g), stmt(static_cast<const clang::CompoundStmt*>(stmt)), context(context) {}
 
-        void expand(vertex_t begin, vertex_t end, vertex_t onReturn, vertex_t onBreak, vertex_t onContinue);
+        vertex_t expand(vertex_t begin, vertex_t end, vertex_t onReturn, vertex_t onBreak, vertex_t onContinue);
 
         SEMANTIC_BLOCK_TYPE getType()   const { return SEMANTIC_BLOCK_TYPE::COMPOUND;}
         std::string         toString()  const { return decl2str( stmt, context ); }
@@ -362,7 +362,7 @@ class BlockSimpleCompound: public SemanticVertex
         BlockSimpleCompound( Graph& g, const std::vector<uptrSemVert>& stmts, const clang::ASTContext& context) 
             : SemanticVertex(g), stmts(stmts), context(context) {}
         
-        void expand(vertex_t begin, vertex_t end, vertex_t onReturn, vertex_t onBreak, vertex_t onContinue);
+        vertex_t expand(vertex_t begin, vertex_t end, vertex_t onReturn, vertex_t onBreak, vertex_t onContinue);
 
         SEMANTIC_BLOCK_TYPE getType()  const { return SEMANTIC_BLOCK_TYPE::SIMPLECOMPOUND;}
         std::string         toString() const 
@@ -384,7 +384,7 @@ class BlockFor: public SemanticVertex
         BlockFor( Graph& g, const clang::Stmt* stmt, const clang::ASTContext& context) 
             : SemanticVertex(g), stmt(static_cast<const clang::ForStmt*>(stmt)), context(context) {}
         
-        void expand(vertex_t begin, vertex_t end, vertex_t onReturn, vertex_t onBreak, vertex_t onContinue);
+        vertex_t expand(vertex_t begin, vertex_t end, vertex_t onReturn, vertex_t onBreak, vertex_t onContinue);
 
         SEMANTIC_BLOCK_TYPE getType()  const { return SEMANTIC_BLOCK_TYPE::FOR; }
         std::string         toString() const { return decl2str( stmt, context ); }
@@ -400,7 +400,7 @@ class BlockWhile: public SemanticVertex
         BlockWhile( Graph& g, const clang::Stmt* stmt, const clang::ASTContext& context) 
             : SemanticVertex(g), stmt(static_cast<const clang::WhileStmt*>(stmt)), context(context) {}
         
-        void expand(vertex_t begin, vertex_t end, vertex_t onReturn, vertex_t onBreak, vertex_t onContinue);
+        vertex_t expand(vertex_t begin, vertex_t end, vertex_t onReturn, vertex_t onBreak, vertex_t onContinue);
 
         SEMANTIC_BLOCK_TYPE getType()  const { return SEMANTIC_BLOCK_TYPE::WHILE;}
         std::string         toString() const { return decl2str( stmt, context ); }
@@ -416,7 +416,7 @@ class BlockDoWhile: public SemanticVertex
         BlockDoWhile( Graph& g, const clang::Stmt* stmt, const clang::ASTContext& context) 
             : SemanticVertex(g), stmt(static_cast<const clang::DoStmt*>(stmt)), context(context) {}
         
-        void expand(vertex_t begin, vertex_t end, vertex_t onReturn, vertex_t onBreak, vertex_t onContinue);
+        vertex_t expand(vertex_t begin, vertex_t end, vertex_t onReturn, vertex_t onBreak, vertex_t onContinue);
 
         SEMANTIC_BLOCK_TYPE getType()  const { return SEMANTIC_BLOCK_TYPE::DOWHILE; }
         std::string         toString() const { return decl2str( stmt, context ); }
@@ -433,7 +433,7 @@ class BlockSwitch : public SemanticVertex
         BlockSwitch( Graph& g, const clang::Stmt* stmt, const clang::ASTContext& context) 
             : SemanticVertex(g), stmt(static_cast<const clang::SwitchStmt*>(stmt)), context(context) {}
 
-        void expand(vertex_t begin, vertex_t end, vertex_t onReturn, vertex_t onBreak, vertex_t onContinue);
+        vertex_t expand(vertex_t begin, vertex_t end, vertex_t onReturn, vertex_t onBreak, vertex_t onContinue);
 
         SEMANTIC_BLOCK_TYPE getType()  const { return SEMANTIC_BLOCK_TYPE::SWITCH;}
         std::string         toString() const { return decl2str( stmt, context ); }
@@ -450,14 +450,17 @@ class BlockCase: public SemanticVertex
         BlockCase( Graph& g, const clang::Stmt* stmt, const clang::ASTContext& context) 
             : SemanticVertex(g), stmt(static_cast<const clang::CaseStmt*>(stmt)), context(context) {}
         
-        void expand(vertex_t begin, vertex_t end, vertex_t onReturn, vertex_t onBreak, vertex_t onContinue);
+        vertex_t expand(vertex_t begin, vertex_t end, vertex_t onReturn, vertex_t onBreak, vertex_t onContinue);
 
         SEMANTIC_BLOCK_TYPE getType()  const { return SEMANTIC_BLOCK_TYPE::CASE;}
         std::string         toString() const { return decl2str( stmt, context ); }
 
+        const std::pair<std::vector<std::string>, const Stmt*>& getConditions() const;
+
     protected:
         const clang::CaseStmt* stmt;
         const clang::ASTContext& context;
+        mutable std::pair<std::vector<std::string>, const Stmt*> conditions;
 };
 
 class BlockDefault: public SemanticVertex 
@@ -466,7 +469,7 @@ class BlockDefault: public SemanticVertex
         BlockDefault( Graph& g, const clang::Stmt* stmt, const clang::ASTContext& context) 
             : SemanticVertex(g), stmt(static_cast<const clang::DefaultStmt*>(stmt)), context(context) {}
         
-        void expand(vertex_t begin, vertex_t end, vertex_t onReturn, vertex_t onBreak, vertex_t onContinue);
+        vertex_t expand(vertex_t begin, vertex_t end, vertex_t onReturn, vertex_t onBreak, vertex_t onContinue);
 
         SEMANTIC_BLOCK_TYPE getType()  const { return SEMANTIC_BLOCK_TYPE::DEFAULT;}
         std::string         toString() const { return decl2str( stmt, context ); }

@@ -14,7 +14,8 @@ Graph createFlowChart(const clang::FunctionDecl* fdecl)
     auto start = addBeginVertex(g, functionName + "\nНачало" );
     auto end   = addEndVertex(  g, functionName + "\nКонец" );
     auto body  = getSemanticVertexFromStmt( fdecl->getBody(), g, fdecl->getASTContext() );
-    body->expand( start, end, end, end, end );
+    auto bodyVertex = body->expand( start, end, end, end, end );
+    boost::add_edge(start, bodyVertex, g);
 
     return g;
 }
