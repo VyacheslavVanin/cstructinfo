@@ -204,15 +204,17 @@ inline void reverseOutEdgesOrder( GRAPH& g, typename boost::graph_traits<GRAPH>:
     using edge_t        = typename boost::graph_traits<GRAPH>::edge_descriptor;
     using edgeprop_t    = typename GRAPH::edge_property_type;
     using edgearray_type= std::vector< std::tuple<vertex_t, vertex_t, edgeprop_t>>;
-    auto edges = boost::out_edges( v, g );
-    auto begin = edges.first;
-    auto end   = edges.second;
+    const auto edges = boost::out_edges( v, g );
+    const auto begin = edges.first;
+    const auto end   = edges.second;
 
     edgearray_type edgearray; 
     std::for_each( begin, end, [&edgearray, &g](const edge_t e)
                                { edgearray.push_back( std::make_tuple( e.m_source, e.m_target, g[e] ) ); }  );
-    for( const auto& e : edgearray ){
-        boost::remove_edge( std::get<0>(e), std::get<1>(e), g); }
+
+    for( const auto& e : edgearray )
+        boost::remove_edge( std::get<0>(e), std::get<1>(e), g); 
+
     std::for_each( edgearray.rbegin(), edgearray.rend(), [&g, &edgearray](const typename edgearray_type::value_type& e ) {
                                                          auto newEdge = boost::add_edge( std::get<0>(e), std::get<1>(e), g).first;
                                                          g[ newEdge ] = std::get<2>(e); } );

@@ -247,6 +247,9 @@ vertex_t BlockSwitch::expand(vertex_t begin, vertex_t end, vertex_t onReturn, ve
                 }
                 break;};
 
+    
+    reverseOutEdgesOrder( graph, vertex );
+
     return vertex;
 }
 
