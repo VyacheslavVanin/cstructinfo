@@ -93,20 +93,20 @@ groupChildren(const std::vector<const Stmt*>& stmts,
     using uptrSemVert = shared_ptr<SemanticVertex>;
 
     std::vector<uptrSemVert> ret;
-    std::vector<uptrSemVert> oneBlock;
+    std::vector<uptrSemVert> oneBlock; // collect statements to one block
 
     auto addOneBlock = [&oneBlock, &ret, &graph, &context]() {
         if(oneBlock.size()) {
             ret.push_back( uptrSemVert(new BlockSimpleCompound(graph, oneBlock, context) ) );
             oneBlock.clear();} };
 
-
     for( auto& stmt : stmts ) {
         auto sv = getSemanticVertexFromStmt( stmt, graph, context);
         if (sv->getType() != SEMANTIC_BLOCK_TYPE::SIMPLE) {
-            addOneBlock();
+            addOneBlock(); // add collected simple statements as one statement if any exist
             ret.push_back( std::move(sv) );}
-        else oneBlock.push_back( std::move(sv) ); }
+        else 
+            oneBlock.push_back( std::move(sv) ); } // add statement to  
     addOneBlock();
 
     return ret;
@@ -256,19 +256,23 @@ vertex_t BlockSwitch::expand(vertex_t begin, vertex_t end, vertex_t onReturn, ve
 const std::pair<vector<string>,const Stmt*>& 
 BlockCase::getConditions() const
 {
-    if(conditions.first.empty())
-    {
-        auto currentStmt = stmt;
-        for(;;){ 
-            conditions.first.push_back( decl2str(currentStmt->getLHS(), context) );
-            auto subStmt = currentStmt->getSubStmt();
-            if( subStmt->getStmtClass() == Stmt::CaseStmtClass )
-                currentStmt = static_cast<const CaseStmt*>(subStmt);
-            else {
-                currentStmt = nullptr;
-                conditions.second  = subStmt;
-                break;} }
-    }
+    if( conditions.first.empty()) {
+        const Stmt* currentStmt = stmt;
+        while(currentStmt){
+            const auto stmtClass = currentStmt->getStmtClass();
+            switch(stmtClass){
+                case Stmt::CaseStmtClass:       
+                            conditions.first.push_back( decl2str( static_cast<const CaseStmt*>(currentStmt)->getLHS(), context) );
+                            currentStmt = static_cast<const CaseStmt*>(currentStmt)->getSubStmt();
+                            break;
+                case Stmt::DefaultStmtClass:
+                            conditions.first.push_back( "default" );
+                            currentStmt = static_cast<const DefaultStmt*>(currentStmt)->getSubStmt();
+                            break;
+                default:  
+                            conditions.second = currentStmt;
+                            currentStmt = nullptr; 
+                            break;} } }
     return conditions;
 }
 
