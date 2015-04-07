@@ -10,12 +10,11 @@ Graph createFlowChart(const clang::FunctionDecl* fdecl)
 {
     Graph g;
     const auto functionName = fdecl->getNameAsString();
-    auto start = addBeginVertex(g, functionName + "\nBegin" );
-    auto end   = addEndVertex(  g, functionName + "\nEnd" );
+    auto start = addFlowchartVertex( g, new VertexBegin(), functionName + "\n" + RUK_FUNCTION_BEGIN);
+    auto end   = addFlowchartVertex( g, new VertexEnd(),   functionName + "\n" + RUK_FUNCTION_END  );
     auto body  = getSemanticVertexFromStmt( fdecl->getBody(), g, fdecl->getASTContext() );
     auto bodyVertex = body->expand( start, end, end, end, end );
     boost::add_edge(start, bodyVertex, g);
-
     return g;
 }
 
@@ -35,8 +34,9 @@ class FindNamedClassConsumer : public ASTConsumer
             const auto functionDeclsInMain = filterFunctions( declsInMain );
             Graph bigGraph;
             for( const auto& d : functionDeclsInMain ) {
-                auto g = FunctionDescription(d).getFlowChart(); //createFlowChart( d );
+                auto g = FunctionDescription(d).getFlowChart(); 
                 boost::copy_graph(g, bigGraph);
+                 
                 }
 
             boost::write_graphviz( std::cout, bigGraph, myLabler( bigGraph ), myEdgeLabler(bigGraph), myGraphPropertyWriter() );

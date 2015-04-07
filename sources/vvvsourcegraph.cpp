@@ -33,7 +33,7 @@ vertex_t BlockIf::expand(vertex_t begin, vertex_t end, vertex_t onReturn, vertex
 {
     const std::string contents = decl2str( stmt->getCond(),context );
     
-    vertex = addConditionVertex( graph ); 
+    vertex = addFlowchartVertex(graph, new VertexCondition() ); //addConditionVertex( graph ); 
     addToTable( LABEL_TYPE::CONDITION, contents );
 
     auto thenStmt = getSemanticVertexFromStmt( stmt->getThen(), graph, context );
@@ -56,7 +56,7 @@ vertex_t BlockIf::expand(vertex_t begin, vertex_t end, vertex_t onReturn, vertex
 
 vertex_t BlockCall::expand(vertex_t begin, vertex_t end, vertex_t onReturn, vertex_t onBreak, vertex_t onContinue)
 {   
-    vertex = addProcessVertex( graph );
+    vertex = addFlowchartVertex(graph, new VertexCall() );
     boost::add_edge( vertex, end, graph );
 
     const std::string contents = decl2str( stmt, context );
@@ -66,7 +66,7 @@ vertex_t BlockCall::expand(vertex_t begin, vertex_t end, vertex_t onReturn, vert
 
 vertex_t BlockReturn::expand(vertex_t begin, vertex_t end, vertex_t onReturn, vertex_t onBreak, vertex_t onContinue)
 {
-    vertex = addProcessVertex( graph );
+    vertex = addFlowchartVertex(graph, new VertexProcess() ); // addProcessVertex( graph );
     boost::add_edge( vertex, onReturn, graph);
 
     const std::string contents = std::string("return ") + decl2str( stmt->getRetValue(), context );
@@ -76,7 +76,7 @@ vertex_t BlockReturn::expand(vertex_t begin, vertex_t end, vertex_t onReturn, ve
 
 vertex_t BlockSimple::expand(vertex_t begin, vertex_t end, vertex_t onReturn, vertex_t onBreak, vertex_t onContinue)
 {
-    vertex = addProcessVertex( graph );
+    vertex = addFlowchartVertex(graph, new VertexProcess() ); //addProcessVertex( graph );
     boost::add_edge( vertex, end, graph );
 
     const std::string contents = decl2str( stmt, context );
@@ -122,14 +122,11 @@ vertex_t BlockCompound::expand(vertex_t begin, vertex_t end, vertex_t onReturn, 
     switch(numChildren){
         case 0: return end; break;
         case 1: groupedChildren[0]->expand( begin, end, onReturn, onBreak, onContinue); break;
-        default: 
-                {
-                    size_t i = numChildren-1;
+        default: {  size_t i = numChildren-1;
                     groupedChildren[i]->expand(begin,end,onReturn,onBreak,onContinue);
                     while( i-- != 0 )
                         groupedChildren[i]->expand(begin, groupedChildren[i+1]->getVertex(), onReturn, onBreak, onContinue);
-                }
-                break;};
+                    break;} };
  
     vertex = groupedChildren[0]->getVertex(); // TODO: if compound block empty there are BUG
     return vertex;
@@ -141,7 +138,7 @@ vertex_t BlockSimpleCompound::expand(vertex_t begin, vertex_t end, vertex_t onRe
     for(const auto& stmt: stmts) v.push_back(stmt->toString());
     const std::string contents = joinStringsWith(v, "\n");
     
-    vertex = addProcessVertex( graph );
+    vertex = addFlowchartVertex(graph, new VertexProcess() ); // addProcessVertex( graph );
     boost::add_edge( vertex,   end, graph);
 
     addToTable( LABEL_TYPE::OPERATOR, contents );
@@ -159,8 +156,8 @@ vertex_t BlockFor::expand(vertex_t begin, vertex_t end, vertex_t onReturn, verte
     // add LoopOpen and LoopClose figures to flowchart 
     //     connect begin     -> LoopOpen and
     //             LoopClose -> end
-    vertex             = addLoopOpenVertex( graph);
-    auto endLoopVertex = addLoopCloseVertex(graph, vertex);
+    vertex             = addFlowchartVertex(graph, new VertexLoopOpen() ); 
+    auto endLoopVertex = addFlowchartVertex(graph, new VertexLoopClose(vertex)); 
     boost::add_edge( endLoopVertex, end, graph);
     
     // expand loop body
@@ -178,8 +175,8 @@ vertex_t BlockWhile::expand(vertex_t begin, vertex_t end, vertex_t onReturn, ver
 {
     const std::string contents = decl2str( stmt->getCond(), context);
 
-    vertex              = addLoopOpenVertex( graph);
-    auto endLoopVertex  = addLoopCloseVertex(graph, vertex);
+    vertex              = addFlowchartVertex(graph, new VertexLoopOpen() ); 
+    auto endLoopVertex  = addFlowchartVertex(graph, new VertexLoopClose(vertex) ); 
     boost::add_edge( endLoopVertex, end, graph);
     
     auto body = getSemanticVertexFromStmt( stmt->getBody(), graph, context);
@@ -195,8 +192,8 @@ vertex_t BlockDoWhile::expand(vertex_t begin, vertex_t end, vertex_t onReturn, v
 {
     const std::string contents = std::string("do while: ") + decl2str( stmt->getCond(), context);
 
-    vertex             = addLoopOpenVertex( graph );
-    auto endLoopVertex = addLoopCloseVertex( graph, vertex);
+    vertex             = addFlowchartVertex(graph, new VertexLoopOpen() ); 
+    auto endLoopVertex = addFlowchartVertex(graph, new VertexLoopClose(vertex) ); 
     boost::add_edge( endLoopVertex, end, graph);
     
     auto body = getSemanticVertexFromStmt( stmt->getBody(), graph, context);
@@ -213,7 +210,7 @@ vertex_t BlockSwitch::expand(vertex_t begin, vertex_t end, vertex_t onReturn, ve
 {
     const std::string contents = std::string("switch: ") + decl2str( stmt->getCond(), context );
 
-    vertex = addConditionVertex( graph ); 
+    vertex = addFlowchartVertex(graph, new VertexSwitch() );
     addToTable( LABEL_TYPE::CONDITION, contents ); 
 
     const auto children = getCompoundStmtChildren( stmt->getBody() );  
@@ -224,15 +221,12 @@ vertex_t BlockSwitch::expand(vertex_t begin, vertex_t end, vertex_t onReturn, ve
         case 0: boost::add_edge(vertex,end,graph); break;
         case 1: groupedChildren[0]->expand(vertex,end,onReturn, end, onContinue); 
                 boost::add_edge(vertex, groupedChildren[0]->getVertex(), graph); break;
-        default: {  
-                    size_t i = numChildren-1;
-                    if(groupedChildren[i]->getType() != SEMANTIC_BLOCK_TYPE::BREAK)
-                    {
+        default: {  size_t i = numChildren-1;
+                    if(groupedChildren[i]->getType() != SEMANTIC_BLOCK_TYPE::BREAK) {
                         groupedChildren[i]->expand(vertex,end,onReturn,end,onContinue);
-                        boost::remove_edge(vertex,groupedChildren[i]->getVertex(), graph);
-                    }
-                    while( i-- != 0 )
-                    {
+                        boost::remove_edge(vertex,groupedChildren[i]->getVertex(), graph); }
+
+                    while( i-- != 0 ) {
                         const auto& currentChild  = groupedChildren[i];
                         const auto& nextChild     = groupedChildren[i+1];
                         const auto  localend = (nextChild->getType() == SEMANTIC_BLOCK_TYPE::BREAK) ? end 
@@ -242,11 +236,8 @@ vertex_t BlockSwitch::expand(vertex_t begin, vertex_t end, vertex_t onReturn, ve
                             currentChild->expand(vertex, localend, onReturn, end, onContinue);  
                             if(     currentChildType != SEMANTIC_BLOCK_TYPE::CASE 
                                     &&  currentChildType != SEMANTIC_BLOCK_TYPE::DEFAULT) // Only case and default statements left connected to condition block
-                                boost::remove_edge(vertex, currentChild->getVertex(), graph); }
-                    }
-                }
-                break;};
-
+                                boost::remove_edge(vertex, currentChild->getVertex(), graph); } }
+                    break;} };
     
     reverseOutEdgesOrder( graph, vertex );
 

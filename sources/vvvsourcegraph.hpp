@@ -13,6 +13,8 @@
 #include "vvvclanghelper.hpp"
 #include <clang/AST/AST.h>
 
+#define RUK_FUNCTION_BEGIN      "Начало"
+#define RUK_FUNCTION_END        "Конец"
 #define RUK_CONDITION_PREFIX    "ЛО."
 #define RUK_OPERTAOR_PREFIX     "ВП."
 #define RUK_LOOP_PREFIX         "Ц."
@@ -28,6 +30,18 @@ enum class LABEL_TYPE : int
     SUBPROGRAM
 };
 
+enum class VERTEX_TYPE : int
+{
+    BEGIN,
+    END,
+    OPERATOR,
+    CONDITION,
+    SWITCH,
+    CALL,
+    LOOP_OPEN,
+    LOOP_CLOSE
+};
+
 enum class SEMANTIC_BLOCK_TYPE : int
 {
     SIMPLE,
@@ -41,7 +55,7 @@ enum class SEMANTIC_BLOCK_TYPE : int
     FOR,
     WHILE,
     DOWHILE,
-    LOOPCLOSE,
+    LOOP_CLOSE,
     SWITCH,
     CASE,
     DEFAULT
@@ -111,19 +125,17 @@ class GraphData
 
 class VertexData{
     public:
-        VertexData() : label()/*, id( ++counter )*/ {}
-        //uint64_t getID() const { return id; }
+        VertexData() : label() {}
         virtual ~VertexData(){};
-        virtual std::string getShape(){ return "Circle";}
+        virtual std::string getShape() const { return "Circle";}
         virtual vertex_t    getOpenOperator() const { return boost::graph_traits<Graph>::null_vertex(); }
+        virtual VERTEX_TYPE getType()const = 0;
         std::string         label;
-    private:
-        //static std::atomic_uint_least64_t counter;
-        //uint64_t id;
 };
 
 struct EdgeData{
     std::string text;
+    std::shared_ptr<int> color = std::shared_ptr<int>(new int);
 };
 
 
@@ -157,6 +169,7 @@ class operatorVisitor : public boost::default_dfs_visitor
                 currentVertex->label = operatorTable[ openVertex ].getLabel();
             }
         }
+
     private:
         operatorTableType& operatorTable;
 };
@@ -174,7 +187,6 @@ class FunctionDescription
             parameters.push_back( p );
 
         auto& opTable = flowChart.m_property->operatorTable;
-        // TODO: construct operator table
         boost::depth_first_search( flowChart, boost::visitor(operatorVisitor(opTable)) );     
     }
 
@@ -188,92 +200,51 @@ class FunctionDescription
 };
 
 
-class BlockBegin : public VertexData {
-    public: virtual  std::string getShape()override { return "ellipse";} };
+class VertexBegin : public VertexData {
+    public: virtual  std::string getShape() const override { return "ellipse";} 
+            virtual  VERTEX_TYPE getType()const override {return VERTEX_TYPE::BEGIN;} };
 
-class BlockEnd : public VertexData {
-    public: virtual  std::string getShape()override { return "ellipse";} };
+class VertexEnd : public VertexData {
+    public: virtual  std::string getShape() const override { return "ellipse";}
+            virtual  VERTEX_TYPE getType()const override { return VERTEX_TYPE::END;}};
 
-class BlockProcess: public VertexData {
-    public: virtual  std::string getShape()override { return "rectangle";} };
+class VertexProcess: public VertexData {
+    public: virtual  std::string getShape() const override { return "rectangle";} 
+            virtual  VERTEX_TYPE getType()const override {return VERTEX_TYPE::OPERATOR;}};
 
-class BlockCondition: public VertexData {
-    public: virtual  std::string getShape()override { return "diamond";} };
+class VertexCall: public VertexData {
+    public: virtual  std::string getShape() const override { return "rectangle";} 
+            virtual  VERTEX_TYPE getType()const override {return VERTEX_TYPE::CALL;}};
 
-class BlockLoopOpen : public VertexData {
-    public: virtual  std::string getShape()override { return "trapezium";} };
+class VertexCondition: public VertexData {
+    public: virtual  std::string getShape() const override { return "diamond";} 
+            virtual  VERTEX_TYPE getType()const override {return VERTEX_TYPE::CONDITION; } };
 
-class BlockLoopClose : public VertexData {
-    public: BlockLoopClose(vertex_t closeWhat) : closeWhat(closeWhat) {}
-            virtual  std::string getShape()override { return "invtrapezium";} 
+class VertexSwitch: public VertexData {
+    public: virtual  std::string getShape() const override { return "diamond";} 
+            virtual  VERTEX_TYPE getType()const override {return VERTEX_TYPE::SWITCH; } };
+
+class VertexLoopOpen : public VertexData {
+    public: virtual  std::string getShape() const override { return "trapezium";} 
+            virtual  VERTEX_TYPE getType()const override {return VERTEX_TYPE::LOOP_OPEN; } };
+
+class VertexLoopClose : public VertexData {
+    public: VertexLoopClose(vertex_t closeWhat) : closeWhat(closeWhat) {}
+            virtual  std::string getShape() const override { return "invtrapezium";} 
+            virtual  VERTEX_TYPE getType()const override { return VERTEX_TYPE::LOOP_CLOSE;}
             virtual  vertex_t    getOpenOperator() const override {return closeWhat;}   
     private: vertex_t closeWhat; };
 
 
-
 template<class C>
 inline 
-std::pair<vertex_t, C*> addFlowchartVertex( Graph& g, const std::string& text = "")
+vertex_t addFlowchartVertex( Graph& g, C* p, const std::string& text = "")
 {
     vertex_t ret = add_vertex( g );
-    auto p = new C();
     g[ret].reset( p );
     g[ret]->label = text;
-    return std::make_pair(ret, p);
-}
-
-inline
-vertex_t addProcessVertex(Graph& g, const std::string& text = "")
-{
-    vertex_t ret = addFlowchartVertex<BlockProcess>(g, text).first;
     return ret;
 }
-
-inline
-vertex_t addConditionVertex(Graph& g, const std::string& text = "")
-{
-    vertex_t ret = add_vertex(g);
-    g[ret].reset( new BlockCondition() );
-    g[ret]->label = text;
-    return ret;
-}
-
-inline
-vertex_t addBeginVertex(Graph& g, const std::string& text="Begin")
-{
-    vertex_t ret = add_vertex(g);
-    g[ret].reset( new BlockBegin() );
-    g[ret]->label = text;
-    return ret;
-}
-
-inline
-vertex_t addEndVertex(Graph& g, const std::string& text="End")
-{
-    vertex_t ret = add_vertex(g);
-    g[ret].reset( new BlockEnd() );
-    g[ret]->label = text;
-    return ret;
-}
-
-inline
-vertex_t addLoopOpenVertex(Graph& g, const std::string& text="Loop name\ncondition")
-{
-    vertex_t ret = add_vertex(g);
-    g[ret].reset( new BlockLoopOpen() );
-    g[ret]->label = text;
-    return ret;
-}
-
-inline
-vertex_t addLoopCloseVertex(Graph& g, vertex_t closeWhat, const std::string& text="Loop name")
-{
-    vertex_t ret = add_vertex(g);
-    g[ret].reset( new BlockLoopClose(closeWhat) );
-    g[ret]->label = text;
-    return ret;
-}
-
 
 
 class SemanticVertex
@@ -295,8 +266,6 @@ class SemanticVertex
 
         virtual SEMANTIC_BLOCK_TYPE getType()  const = 0;
         virtual std::string         toString() const = 0;
-        
-
 
     protected:
         Graph& graph;
@@ -319,7 +288,7 @@ class BlockIf : public SemanticVertex
         const clang::ASTContext& context;
 };
 
- class BlockCall: public SemanticVertex
+class BlockCall: public SemanticVertex
 {
     public:
         BlockCall( Graph& g, const clang::Stmt* stmt, const clang::ASTContext& context) 
@@ -528,7 +497,6 @@ class BlockDefault: public SemanticVertex
 };
 
 
-
 inline 
 std::string escapeQuates(const std::string& str) 
 {
@@ -538,10 +506,8 @@ std::string escapeQuates(const std::string& str)
             case '\"': ret += "\\\""; break;
             case '\\': ret += "\\\\"; break;
             default: ret += c; break;}
-
     return ret;
 }
-
 
 
 class myLabler 
@@ -566,7 +532,6 @@ class myEdgeLabler
         template<class E>
         void operator()(std::ostream& out, const E& e) const {
                         out << "[label=\"" << g[e].text << "\"]";}
-
     private:
         const Graph& g;
 };
@@ -584,11 +549,4 @@ class myGraphPropertyWriter
 
 std::shared_ptr<SemanticVertex> 
 getSemanticVertexFromStmt(const clang::Stmt* stmt, Graph& graph, const clang::ASTContext& context);
-
-
-
-
-
-
-
 
