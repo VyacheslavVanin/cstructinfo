@@ -209,17 +209,32 @@ inline void reverseOutEdgesOrder( GRAPH& g, typename boost::graph_traits<GRAPH>:
     const auto end   = edges.second;
 
     edgearray_type edgearray; 
-    std::for_each( begin, end, [&edgearray, &g](const edge_t e)
+    std::for_each( begin, end, [&edgearray, &g](const edge_t e)  // Store edge information (source, target, data)
                                { edgearray.push_back( std::make_tuple( e.m_source, e.m_target, g[e] ) ); }  );
 
-    for( const auto& e : edgearray )
+    for( const auto& e : edgearray )    // Remove edges
         boost::remove_edge( std::get<0>(e), std::get<1>(e), g); 
 
+    // Reconnect stored edges in reversed order (rbegin, rend)
     std::for_each( edgearray.rbegin(), edgearray.rend(), [&g, &edgearray](const typename edgearray_type::value_type& e ) {
                                                          auto newEdge = boost::add_edge( std::get<0>(e), std::get<1>(e), g).first;
                                                          g[ newEdge ] = std::get<2>(e); } );
 }
 
+/*
+struct VertexData{
+    int branchesnes;
+};
+using graph    = boost::adjacency_list<boost::listS, boost::vecS, boost::directedS,VertexData>;
+using vertex_t = boost::graph_traits<graph>::vertex_descriptor;
+using edge_t   = boost::graph_traits<graph>::edge_descriptor;
 
+std::map<vertex_t,int> calculateBranchesnes(const graph& g)
+{
+    std::map<vertex_t,int> ret;
 
+    return ret;
+}
+
+*/
 #endif

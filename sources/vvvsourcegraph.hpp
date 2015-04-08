@@ -170,6 +170,11 @@ class operatorVisitor : public boost::default_dfs_visitor
             }
         }
 
+        void tree_edge(edge_t e, const Graph& g) const
+        {
+            *g[e].color.get() = 1;            
+        }
+
     private:
         operatorTableType& operatorTable;
 };
@@ -531,7 +536,8 @@ class myEdgeLabler
             
         template<class E>
         void operator()(std::ostream& out, const E& e) const {
-                        out << "[label=\"" << g[e].text << "\"]";}
+                        out << "[label=\"" << g[e].text << "\"]";
+                        if( *g[e].color.get()==1 ) out << "[color=red]";}
     private:
         const Graph& g;
 };
@@ -539,12 +545,10 @@ class myEdgeLabler
 class myGraphPropertyWriter
 {
     public:
-        void operator()(std::ostream& out) const
-        {
+        void operator()(std::ostream& out) const {
             out << "graph [fontname = \"monospace\"]" <<std::endl;
             out << "node [fontname = \"monospace\"]" <<std::endl;
-            out << "edge [fontname = \"monospace\"]" <<std::endl;
-        }
+            out << "edge [fontname = \"monospace\"]" <<std::endl; }
 };
 
 std::shared_ptr<SemanticVertex> 

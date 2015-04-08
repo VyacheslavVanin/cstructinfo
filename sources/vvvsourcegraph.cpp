@@ -232,11 +232,12 @@ vertex_t BlockSwitch::expand(vertex_t begin, vertex_t end, vertex_t onReturn, ve
                         const auto  localend = (nextChild->getType() == SEMANTIC_BLOCK_TYPE::BREAK) ? end 
                                                                                                     : nextChild->getVertex();
                         const auto currentChildType = currentChild->getType();
-                        if(currentChildType != SEMANTIC_BLOCK_TYPE::BREAK){
-                            currentChild->expand(vertex, localend, onReturn, end, onContinue);  
-                            if(     currentChildType != SEMANTIC_BLOCK_TYPE::CASE 
-                                    &&  currentChildType != SEMANTIC_BLOCK_TYPE::DEFAULT) // Only case and default statements left connected to condition block
-                                boost::remove_edge(vertex, currentChild->getVertex(), graph); } }
+                        switch( currentChildType ) {
+                            case SEMANTIC_BLOCK_TYPE::BREAK:    break;
+                            case SEMANTIC_BLOCK_TYPE::CASE:
+                            case SEMANTIC_BLOCK_TYPE::DEFAULT:  currentChild->expand(vertex, localend, onReturn, end, onContinue);  break;
+                            default:                            currentChild->expand(vertex, localend, onReturn, end, onContinue); 
+                                                                boost::remove_edge(vertex, currentChild->getVertex(), graph);       break; } }
                     break;} };
     
     reverseOutEdgesOrder( graph, vertex );
