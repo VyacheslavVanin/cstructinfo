@@ -10,10 +10,10 @@ Graph createFlowChart(const clang::FunctionDecl* fdecl)
 {
     Graph g;
     const auto functionName = fdecl->getNameAsString();
-    auto start = addFlowchartVertex( g, new VertexBegin(), functionName + "\n" + RUK_FUNCTION_BEGIN);
-    auto end   = addFlowchartVertex( g, new VertexEnd(),   functionName + "\n" + RUK_FUNCTION_END  );
+    auto start = addFlowchartVertex( g, new VertexBegin(), 0, functionName + "\n" + RUK_FUNCTION_BEGIN);
+    auto end   = addFlowchartVertex( g, new VertexEnd(),  0,  functionName + "\n" + RUK_FUNCTION_END  );
     auto body  = getSemanticVertexFromStmt( fdecl->getBody(), g, fdecl->getASTContext() );
-    auto bodyVertex = body->expand( start, end, end, end, end );
+    auto bodyVertex = body->expand( start, end, end, end, end, 1 );
     boost::add_edge(start, bodyVertex, g);
     return g;
 }
