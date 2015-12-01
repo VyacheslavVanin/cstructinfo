@@ -35,7 +35,7 @@ enum class VERTEX_TYPE : int
     BEGIN,
     END,
     OPERATOR,
-    CONDITION,
+    IF,
     SWITCH,
     CALL,
     LOOP_OPEN,
@@ -109,7 +109,7 @@ using operatorTableType = std::map<vertex_t, OperatorDescriptor>;
 class GraphData
 {
     public:
-        operatorTableType   operatorTable;
+        operatorTableType      operatorTable;
     private:
         uint32_t mutable    conditionNumerator  = 0;
         uint32_t mutable    operatorNumerator   = 0;
@@ -132,6 +132,7 @@ class VertexData{
         virtual VERTEX_TYPE getType()const = 0;
         std::string         label;
         int depth = 0;
+        int branchesnes = 0;
 };
 
 struct EdgeData{
@@ -143,10 +144,10 @@ struct EdgeData{
 
 
 Graph createFlowChart(const clang::FunctionDecl* fdecl);
-class operatorVisitor : public boost::default_dfs_visitor
+class LabelVisitor : public boost::default_dfs_visitor
 {
     public:
-        operatorVisitor(operatorTableType& operatorTable) : operatorTable(operatorTable) {}
+        LabelVisitor(operatorTableType& operatorTable) : operatorTable(operatorTable) {}
         void discover_vertex(vertex_t v, const Graph& g) const
         {
             auto& graphProp = g.m_property;
@@ -186,14 +187,14 @@ class FunctionDescription
 {
     public:
         FunctionDescription(const clang::FunctionDecl* fdecl) 
-            : name(fdecl->getNameAsString()), returnType(fdecl->getResultType().getAsString()),
+            : name(fdecl->getNameAsString()), returnType(fdecl->getReturnType().getAsString()),
               flowChart(createFlowChart(fdecl)) 
     {
         for(const auto& p : getFunctionParams(fdecl) ) 
             parameters.push_back( p );
 
         auto& opTable = flowChart.m_property->operatorTable;
-        boost::depth_first_search( flowChart, boost::visitor(operatorVisitor(opTable)) );     
+        boost::depth_first_search( flowChart, boost::visitor( LabelVisitor(opTable)) );     
     }
 
         const Graph& getFlowChart() const {return flowChart;}
@@ -222,13 +223,18 @@ class VertexCall: public VertexData {
     public: virtual  std::string getShape() const override { return "rectangle";} 
             virtual  VERTEX_TYPE getType()const override {return VERTEX_TYPE::CALL;}};
 
-class VertexCondition: public VertexData {
-    public: virtual  std::string getShape() const override { return "diamond";} 
-            virtual  VERTEX_TYPE getType()const override {return VERTEX_TYPE::CONDITION; } };
 
-class VertexSwitch: public VertexData {
-    public: virtual  std::string getShape() const override { return "diamond";} 
+class VertexCondition: public VertexData {
+    public: virtual  std::string getShape() const override { return "diamond";} }; 
+
+class VertexIf: public VertexCondition {
+    public: 
+            virtual  VERTEX_TYPE getType()const override {return VERTEX_TYPE::IF; } };
+
+class VertexSwitch: public VertexCondition {
+    public: 
             virtual  VERTEX_TYPE getType()const override {return VERTEX_TYPE::SWITCH; } };
+
 
 class VertexLoopOpen : public VertexData {
     public: virtual  std::string getShape() const override { return "trapezium";} 
@@ -479,12 +485,12 @@ class BlockCase: public SemanticVertex
         SEMANTIC_BLOCK_TYPE getType()  const { return SEMANTIC_BLOCK_TYPE::CASE;}
         std::string         toString() const { return decl2str( stmt, context ); }
 
-        const std::pair<std::vector<std::string>, const Stmt*>& getConditions() const;
+        const std::pair<std::vector<std::string>, const clang::Stmt*>& getConditions() const;
 
     protected:
         const clang::CaseStmt* stmt;
         const clang::ASTContext& context;
-        mutable std::pair<std::vector<std::string>, const Stmt*> conditions;
+        mutable std::pair<std::vector<std::string>, const clang::Stmt*> conditions;
 };
 
 class BlockDefault: public SemanticVertex 
@@ -524,8 +530,9 @@ class myLabler
 
         template<class V>
         void operator()(std::ostream& out, const V& v) const {
-                        out << "[label=\"" << escapeQuates( g[v]->label ) << "\n"
-                                   << "d: " << g[v]->depth
+                        out << "[label=\"" << escapeQuates( g[v]->label )
+                                   << "\nd: " << g[v]->depth 
+                                   << "\nb: " << g[v]->branchesnes
                                    << "\""
                             << " shape=\"" << g[v]->getShape() << "\"" 
                             << "]";}
@@ -557,4 +564,9 @@ class myGraphPropertyWriter
 
 std::shared_ptr<SemanticVertex> 
 getSemanticVertexFromStmt(const clang::Stmt* stmt, Graph& graph, const clang::ASTContext& context);
+
+/** @brief Calculate branchesnes of each vertex in graph
+ *  @return map<Key:Vertex, Value:Branchesnes>   */
+std::map<vertex_t, int> calculateBranchesnes( Graph& g );
+
 

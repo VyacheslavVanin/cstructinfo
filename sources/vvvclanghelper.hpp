@@ -11,128 +11,37 @@
 #include <clang/Frontend/FrontendAction.h>
 #include <clang/Tooling/Tooling.h>
 #include <clang/Lex/Lexer.h>
-using namespace clang;
-
-template<class D>
-inline std::string decl2str(const D* d, const ASTContext& context )
-{
-    const auto& sm = context.getSourceManager();
-    const SourceLocation  b(d->getLocStart()),
-                         _e(d->getLocEnd());
-    const SourceLocation  e(Lexer::getLocForEndOfToken(_e, 0, sm, context.getLangOpts() ));
-    return std::string(sm.getCharacterData(b), sm.getCharacterData(e) - sm.getCharacterData(b));
-}
-
-inline
-bool isSystemDecl(const Decl* d)
-{
-    return d->getASTContext().getSourceManager().isInSystemHeader(d->getLocStart()); 
-}
-
-inline 
-std::vector<const Decl*> getDeclarations(const ASTContext& context)
-{
-    std::vector<const Decl*> ret;
-    const auto  tu = context.getTranslationUnitDecl();
-    const auto  begin = tu->decls_begin();
-    const auto  end = tu->decls_end();
-    for(auto i = begin; i != end; ++i) 
-        ret.push_back( *i );
-    return ret;
-}
-
-inline 
-std::vector<const FunctionDecl*> filterFunctions(const std::vector<const Decl*>& decls)
-{
-    std::vector<const FunctionDecl*> ret;
-    std::for_each( decls.begin(), decls.end(), [&ret](const Decl* d) {
-                if( d->isFunctionOrFunctionTemplate() )
-                    ret.push_back( dynamic_cast<const FunctionDecl*>(d) ); });
-    return ret;
-}
-
-inline 
-std::vector<const CXXRecordDecl*> filterStructs(const std::vector<const Decl*>& decls)
-{
-    std::vector<const CXXRecordDecl*> ret;
-    const auto fd  = filter( decls, [](const Decl* d) { return d->getKind() == clang::Decl::Kind::CXXRecord; });
-    for( const auto& d: fd )
-        ret.push_back( dynamic_cast<const CXXRecordDecl*>(d) );
-    return ret;
-}
-
-inline 
-std::vector<const FieldDecl*> getStructFields(const CXXRecordDecl* r)
-{
-    std::vector<const FieldDecl*> ret;
-    const auto b = r->field_begin();
-    const auto e = r->field_end();
-    for(auto i = b; i != e; ++i)
-        ret.push_back( *i );
-    return ret;
-}
-
-inline 
-std::vector<const ParmVarDecl*> getFunctionParams(const FunctionDecl* d)
-{
-    std::vector<const ParmVarDecl*> ret;
-    const auto numParams = d->param_size();
-    for(unsigned int i =0; i < numParams; ++i)
-        ret.push_back( d->getParamDecl( i ) ); 
-    return ret;
-}
-
-inline 
-void printFunction(const FunctionDecl* d)
-{
-    using namespace std;
-    cout     << "function name: " << d->getNameAsString() << endl
-             << "  result type: " << d->getResultType().getAsString() << endl;
-    const auto params = getFunctionParams( d );
-    for( auto& p: params)
-        cout << "  parameter " << p->getNameAsString() << " of type " << p->getType().getAsString() << endl;
-
-    if( d->hasBody() )
-        cout << decl2str(d->getBody(), d->getASTContext()) << endl << endl; 
-}
-
-inline 
-void printStructure( const CXXRecordDecl* d)
-{
-    using namespace std;
-    cout << d->getNameAsString() << endl;
-    const auto fs = getStructFields( d );
-    for( const auto& f: fs ) {
-        const auto name = f->getNameAsString();
-        const auto t    = f->getType().getAsString();
-        cout << "field: " << name << " of type "<< t << ";" << endl; }
-}
-
-inline 
-std::vector<const Stmt*> getCompoundStmtChildren(const Stmt* s)
-{
-    std::vector<const Stmt*> ret;
-    const auto b = s->child_begin();
-    const auto e = s->child_end();
-    for( auto i = b; i != e; ++i )
-        ret.push_back( *i );
-    return ret;
-}
 
 
+std::string getComment(clang::Decl* d);
 
-inline 
-char* getSourceFromFile(const char* filename)
-{
-    std::ifstream f(filename, std::ios::binary);
-    f.seekg(0, f.end );
-    const size_t fsize = f.tellg();
-    f.seekg(0, f.beg );
-    char* ret = new char[fsize];
-    f.read( ret, fsize );
-    f.close();
-    return ret;
-}
+std::string decl2str(const clang::Decl* d, const clang::ASTContext& context);
+std::string decl2str(const clang::Stmt* d, const clang::ASTContext& context);
+
+bool isSystemDecl(const clang::Decl* d);
+
+std::vector<const clang::Decl*> getDeclarations(const clang::ASTContext& context);
+
+std::vector<const clang::Decl*> 
+getNonSystemDeclarations(const clang::ASTContext& context);
+
+std::vector<const clang::FunctionDecl*> 
+filterFunctions(const std::vector<const clang::Decl*>& decls);
+
+std::vector<const clang::RecordDecl*>
+filterStructs(const std::vector<const clang::Decl*>& decls);
+
+std::vector<const clang::FieldDecl*> getStructFields(const clang::RecordDecl* r);
+
+std::vector<const clang::ParmVarDecl*> getFunctionParams(const clang::FunctionDecl* d);
+
+void printFunction(const clang::FunctionDecl* d);
+
+void printStructure( const clang::CXXRecordDecl* d);
+
+std::vector<const clang::Stmt*> getCompoundStmtChildren(const clang::Stmt* s);
+
+char* getSourceFromFile(const char* filename);
 
 #endif
 

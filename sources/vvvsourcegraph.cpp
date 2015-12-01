@@ -33,7 +33,7 @@ vertex_t BlockIf::expand(vertex_t begin, vertex_t end, vertex_t onReturn, vertex
 {
     const std::string contents = decl2str( stmt->getCond(),context );
     
-    vertex = addFlowchartVertex( graph, new VertexCondition(), depth ); 
+    vertex = addFlowchartVertex( graph, new VertexIf(), depth ); 
     addToTable( LABEL_TYPE::CONDITION, contents );
 
     auto thenStmt = getSemanticVertexFromStmt( stmt->getThen(), graph, context );
@@ -310,4 +310,59 @@ vertex_t BlockContinue::expand(vertex_t begin, vertex_t end, vertex_t onReturn, 
 }
 
 
+
+static int branchesnesRecursion( const Graph& g, vertex_t v, vertex_t limitVertex)
+{
+    const auto currentDepth = g[v]->depth;
+    const auto adjVertices = getAdjacentVertices(g,v);
+    const auto numChildren = adjVertices.size();
+    const auto limitDepth = g[limitVertex]->depth;
+
+    if( currentDepth == limitDepth && v != limitVertex)
+        return 1;
+
+    if( currentDepth < limitDepth )
+        return 1;
+
+    if( numChildren == 0) // End of program
+        return 1;
+   
+    int ret = 0;
+    auto edges = boost::out_edges( v, g);
+    auto begin = edges.first;
+    auto end   = edges.second;
+    std::for_each( begin, end, [&ret, &g, &limitVertex](const edge_t e)
+                               {
+                                   if( *g[e].color==1 )
+                                        ret += branchesnesRecursion( g, e.m_target, limitVertex);
+                                   else
+                                        ret += 1;
+                               });
+
+    return ret;
+}
+
+static void calcB(Graph& g, vertex_t v )
+{
+    const auto av = getAdjacentVertices(g,v);
+    g[v]->branchesnes = branchesnesRecursion( g, v, v );
+
+    for( auto a: av)
+        calcB(g,a);
+}
+
+
+std::map<vertex_t, int> calculateBranchesnes( Graph& g )
+{
+    std::map<vertex_t, int> ret;
+    //const auto vertices = boost::vertices( g );
+    //for(auto i = vertices.first; i != vertices.second; ++i) 
+    //    ret[*i] = branchesnes( g, *i );
+    calcB( g, *boost::vertices(g).first );
+
+    for( auto& e : ret )
+        g[e.first]->branchesnes = e.second;
+
+    return ret;
+}
 

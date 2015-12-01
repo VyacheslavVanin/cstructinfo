@@ -221,20 +221,4 @@ inline void reverseOutEdgesOrder( GRAPH& g, typename boost::graph_traits<GRAPH>:
                                                          g[ newEdge ] = std::get<2>(e); } );
 }
 
-/*
-struct VertexData{
-    int branchesnes;
-};
-using graph    = boost::adjacency_list<boost::listS, boost::vecS, boost::directedS,VertexData>;
-using vertex_t = boost::graph_traits<graph>::vertex_descriptor;
-using edge_t   = boost::graph_traits<graph>::edge_descriptor;
-
-std::map<vertex_t,int> calculateBranchesnes(const graph& g)
-{
-    std::map<vertex_t,int> ret;
-
-    return ret;
-}
-
-*/
 #endif
