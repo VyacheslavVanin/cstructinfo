@@ -17,8 +17,8 @@ LIBS_:= $(LIBS)  $(LIBS)
 
 # $(shell llvm-config --cflags) 
 CXXFLAGS:= -I/usr/lib/llvm-$(LLVM_VERSION)/include -D_GNU_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS -std=c++11
-#CXXFLAGS += -g -O0
-CXXFLAGS += -O2
+CXXFLAGS += -g -O0
+#CXXFLAGS += -O2
 #LFLAGS:= $(shell llvm-config --ldflags)  $(shell llvm-config --libs) 
 
 

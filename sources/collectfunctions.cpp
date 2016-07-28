@@ -92,10 +92,6 @@ getDoxyParams(const ASTContext& ctx, const RawComment* rawcomment)
     return ret;
 }
 
-
-
-
-
 void printFunctionDecls(clang::ASTContext& Context, boost::property_tree::ptree& tree)
 {
     const auto declsInMain = getNonSystemDeclarations(Context);
