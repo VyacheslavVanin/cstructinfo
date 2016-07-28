@@ -24,10 +24,10 @@ std::vector<std::string> removeDecorations(const std::string& str)
     auto docstring = erase_tail_copy(erase_head_copy(str,3), 2);
     split(ret, docstring, is_any_of("\n"), token_compress_on);
     std::transform( ret.begin(), ret.end(), ret.begin(),
-                    [](const std::string& str) 
+                    [](const auto& str) 
                     { return boost::algorithm::trim_copy(str);} );
     std::transform( ret.begin(), ret.end(), ret.begin(),
-                    [](const std::string& str)
+                    [](const auto& str)
                     { return str[0]=='*' ? erase_head_copy(str,1) 
                                          : str; } ); 
     return ret;
@@ -40,18 +40,19 @@ std::vector<std::string> splitToTrimmedWords(const std::string& str)
 
     split(splited, str, is_any_of(" \t"), token_compress_on );
     splited = filter(splited, 
-                     [](const std::string& str) {return !str.empty();});
+                     [](const auto& str) {return !str.empty();});
 
     return splited;
 }
 
 /**
+ * Function join elements from 'c' using sep omitting n first elements.
  * @param c container
  * @param n number of head elements to exclude
  * @param sep separator to insert
  */
 template<class T, typename S>
-std::string joinTail(const T& c, size_t n, const S& sep) 
+auto joinTail(const T& c, size_t n, const S& sep) 
 {
     const auto& tail = std::vector<std::string>(c.begin() + n, c.end());
     const auto& comment = boost::algorithm::join(tail, sep);
@@ -92,7 +93,8 @@ getDoxyParams(const ASTContext& ctx, const RawComment* rawcomment)
     return ret;
 }
 
-void printFunctionDecls(clang::ASTContext& Context, boost::property_tree::ptree& tree)
+void printFunctionDecls(clang::ASTContext& Context,
+                        boost::property_tree::ptree& tree)
 {
     const auto declsInMain = getNonSystemDeclarations(Context);
     const auto functionsDecls = filterFunctions(declsInMain);
@@ -114,11 +116,13 @@ void printFunctionDecls(clang::ASTContext& Context, boost::property_tree::ptree&
             ptree param;
                 param.put("param", name);
                 param.put("type", t);
-                const std::string& comment = paramsComments.count(name) ? paramsComments[name] : "";
+                const std::string& comment = paramsComments.count(name) ?
+                                             paramsComments[name] :
+                                             "";
                 param.put("comment", comment); 
             params.push_back( std::make_pair("", param));
         }
-        auto functionName = d->getName().str();
+        const auto functionName = d->getName().str();
 
         functiondesc.put( "name", functionName);
         functiondesc.put( "retval", d->getReturnType().getAsString() );

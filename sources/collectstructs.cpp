@@ -1,7 +1,8 @@
 #include "collectstructs.h"
 using namespace clang;
 
-void printStructDecls(clang::ASTContext& Context, boost::property_tree::ptree& tree)
+void printStructDecls(clang::ASTContext& Context,
+                      boost::property_tree::ptree& tree)
 {
     const auto declsInMain = getNonSystemDeclarations(Context);
     const auto structsDecls = filterStructs(declsInMain);
@@ -25,7 +26,9 @@ void printStructDecls(clang::ASTContext& Context, boost::property_tree::ptree& t
         }
         auto structName = d->getName().str();
         if(structName.empty())
-            structName = "unnamed from " + Context.getSourceManager().getFilename(d->getLocation()).str();
+            structName = "unnamed from " +
+                         Context.getSourceManager().
+                                          getFilename(d->getLocation()).str();
 
         const auto& structComment = getComment((Decl*)d);
 
