@@ -51,9 +51,15 @@ std::vector<const Decl*> getDeclarations(const ASTContext& context)
 {
     const auto decls = getDeclarations( context );
     return filter( decls, [](const Decl* d) 
-            { return d->getASTContext().getSourceManager().isInMainFile(d->getLocStart()); });
+            { return !d->getASTContext().getSourceManager().isInSystemHeader(d->getLocStart()); });
 }
 
+std::vector<const Decl*> getMainFileDeclarations(const ASTContext& context)
+{
+    const auto decls = getDeclarations( context );
+    return filter( decls, [](const Decl* d) 
+            { return d->getASTContext().getSourceManager().isInMainFile(d->getLocStart()); });
+}
  
 std::vector<const FunctionDecl*> filterFunctions(const std::vector<const Decl*>& decls)
 {

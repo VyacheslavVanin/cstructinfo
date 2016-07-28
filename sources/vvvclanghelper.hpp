@@ -25,6 +25,9 @@ std::vector<const clang::Decl*> getDeclarations(const clang::ASTContext& context
 std::vector<const clang::Decl*> 
 getNonSystemDeclarations(const clang::ASTContext& context);
 
+std::vector<const clang::Decl*>
+getMainFileDeclarations(const clang::ASTContext& context);
+
 std::vector<const clang::FunctionDecl*> 
 filterFunctions(const std::vector<const clang::Decl*>& decls);
 
