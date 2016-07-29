@@ -16,11 +16,18 @@ void printStructDecls(clang::ASTContext& Context,
         ptree fields;
         for(const auto& f: fs) {
             const auto& name = f->getNameAsString();
-            const auto& t    = f->getType().getAsString();
+
+            //const auto& t = f->getType();
+            //t->isConstantArrayType(); //check if safe to cast to Constant array
+            //ConstantArrayType* ca = (ConstantArrayType*)t->getAsArrayTypeUnsafe();
+            //ca->getSize(); //get NumElements
+            //ca->getElementType()
+
+            const auto& typestring = f->getType().getAsString();
             const auto& comment = getComment((Decl*)f);
             ptree field;
                 field.put("field", name);
-                field.put("type", t);
+                field.put("type", typestring);
                 field.put("comment", comment); 
             fields.push_back( std::make_pair("", field));
         }
