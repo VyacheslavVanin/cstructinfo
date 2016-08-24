@@ -1,6 +1,36 @@
 #include "collectstructs.h"
 using namespace clang;
 
+void addCommonFieldDecl(boost::property_tree::ptree& field,
+                  const clang::FieldDecl* decl)
+{
+    using boost::property_tree::ptree;
+    const auto& name = decl->getNameAsString();
+    const auto& typestring = decl->getType().getAsString();
+    const auto& comment = getComment((Decl*)decl);
+    field.put("field", name);
+    field.put("type", typestring);
+    field.put("comment", comment); 
+}
+
+void addArrayFieldDecl(boost::property_tree::ptree& field,
+                       const clang::FieldDecl* decl)
+{
+    const auto& t = decl->getType();
+    if(!t->isConstantArrayType())
+        return;
+
+    ConstantArrayType* ca = (ConstantArrayType*)t->getAsArrayTypeUnsafe();
+    const auto elemCount = ca->getSize();
+    const auto& elementTypeName = ca->getElementType().getAsString();
+    
+    using boost::property_tree::ptree;
+    ptree arrayInfo;
+    arrayInfo.put("elemType", elementTypeName);
+    arrayInfo.put("elemCount", elemCount.toString(10, false));
+    field.push_back(std::make_pair("array", arrayInfo));
+}
+
 void printStructDecls(clang::ASTContext& Context,
                       boost::property_tree::ptree& tree)
 {
@@ -15,21 +45,10 @@ void printStructDecls(clang::ASTContext& Context,
         ptree structdesc;
         ptree fields;
         for(const auto& f: fs) {
-            const auto& name = f->getNameAsString();
-
-            //const auto& t = f->getType();
-            //t->isConstantArrayType(); //check if safe to cast to Constant array
-            //ConstantArrayType* ca = (ConstantArrayType*)t->getAsArrayTypeUnsafe();
-            //ca->getSize(); //get NumElements
-            //ca->getElementType()
-
-            const auto& typestring = f->getType().getAsString();
-            const auto& comment = getComment((Decl*)f);
             ptree field;
-                field.put("field", name);
-                field.put("type", typestring);
-                field.put("comment", comment); 
-            fields.push_back( std::make_pair("", field));
+            addCommonFieldDecl(field, f);
+            addArrayFieldDecl(field, f);
+            fields.push_back(std::make_pair("", field));
         }
         auto structName = d->getName().str();
         if(structName.empty())
