@@ -2,31 +2,30 @@ SOURCES:=$(shell find ./sources -name "*.cpp")
 OBJ:=$(patsubst %.cpp,%.o,$(SOURCES))
 
 
-LLVM_VERSION:=3.5
-
 TARGETNAME:=run
-INCDIRS:=
-LIBDIRS:=/usr/lib /usr/lib/llvm-$(LLVM_VERSION)/lib
-LIBS:=clang llvm ncursesw tinfo\
-		$(patsubst lib%.a,%,$(shell ls /usr/lib/llvm-$(LLVM_VERSION)/lib | grep "\.a")) 
-#	  clangAST clangFrontend clangLex clangSerialization clangDriver  \
+INCDIRS:=$(shell llvm-config --includedir)
+LIBDIRS:=/usr/lib/clang
+LIBS:=clang \
+	  clangAST clangFrontend clangLex clangSerialization clangDriver  \
 		clangTooling clangParse clangSema clangAnalysis clangRewriteFrontend \
-		clangRewriteCore clangEdit clangAST clangLex clangBasic
+		clangEdit clangAST clangLex clangBasic
 
-LIBS_:= $(LIBS)  $(LIBS)
+CXXFLAGS:= $(shell llvm-config --cflags) 
+CXXFLAGS += -g -O0
+#CXXFLAGS += -O2
 
-# $(shell llvm-config --cflags) 
-CXXFLAGS:= -I/usr/lib/llvm-$(LLVM_VERSION)/include -D_GNU_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS -std=c++14
-#CXXFLAGS += -g -O0
-CXXFLAGS += -O2
-#LFLAGS:= $(shell llvm-config --ldflags)  $(shell llvm-config --libs) 
-
-
-#CC="usr/bin/clang" 
-#CXX="/usr/bin/clang++"
 LD:=$(CXX)
 CXXFLAGS+=$(patsubst %,-I%,$(INCDIRS))
-LFLAGS+=$(patsubst %,-L%,$(LIBDIRS)) $(patsubst %,-l%,$(LIBS_)) -lpthread -ldl -lz -lLTO --static
+
+LLL:=-lLLVM
+
+LIBSFLAGS:=$(shell llvm-config --libs) \
+		   $(patsubst %,-l%,$(LIBS)) \
+		   $(shell llvm-config --system-libs)
+LFLAGS+= $(shell llvm-config --ldflags) \
+		 $(patsubst %,-L%,$(LIBDIRS)) \
+		 $(LIBSFLAGS) \
+		 $(LLL)
 
 
 all: $(OBJ)
