@@ -12,8 +12,8 @@ Tool used to collect structs and functions info from c/c++ sources to JSON.
       (debian: libclang-dev, llvm-dev, libncursesw5-dev)
 
 ##example
-    Input file example.c:
-    ```
+Input file example.c:
+```
     #include <stdio.h>
     #include <stdlib.h>
 
@@ -44,10 +44,10 @@ Tool used to collect structs and functions info from c/c++ sources to JSON.
         printf("foo contains: a = %d, b =%d, c = %d\n", f->a, f->b, f->c);
         return 0;
     }
-    ```
+```
 
-    Output:
-    ```
+Output:
+```
     {
         "structs": [
             {
@@ -108,4 +108,4 @@ Tool used to collect structs and functions info from c/c++ sources to JSON.
             }
         ]
     }
-    ```
+```
