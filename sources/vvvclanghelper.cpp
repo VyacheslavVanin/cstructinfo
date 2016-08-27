@@ -73,8 +73,11 @@ filterFunctions(const std::vector<const Decl*>& decls)
 {
     std::vector<const FunctionDecl*> ret;
     std::for_each(decls.begin(), decls.end(), [&ret](const Decl* d) {
-                if( d->isFunctionOrFunctionTemplate() )
-                    ret.push_back( dynamic_cast<const FunctionDecl*>(d) ); });
+                const Decl* tempd = d;
+                if( d->isFunctionOrFunctionTemplate() && !d->isTemplateDecl()){
+                    const auto funcdecl = dynamic_cast<const FunctionDecl*>(d);
+                    ret.push_back(funcdecl);
+                }});
     return ret;
 }
 
