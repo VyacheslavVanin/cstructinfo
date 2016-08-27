@@ -2,10 +2,19 @@
 Tool used to collect structs and functions info from c/c++ sources to JSON.
 
 ##usage
+Use tool like this:
 ```
 ccolect example.c -I/your/include/path \
                   -D_AND_OTHER_COMPILER_OPTIONS_ > output.json
 ```
+
+Do not separate compiler options. For example 
+```
+ccolect example.c -I /your/include/path \
+                  -D _AND_OTHER_COMPILER_OPTIONS_ > output.json
+```
+this do not work.
+
 
 ##build
 - depends from libclang-3.5, llvm-3.5, ncurses
@@ -44,6 +53,10 @@ int bar(const foo* f)
     printf("foo contains: a = %d, b =%d, c = %d\n", f->a, f->b, f->c);
     return 0;
 }
+```
+Command:
+```
+ccollect example.c
 ```
 
 Output:
@@ -109,3 +122,26 @@ Output:
     ]
 }
 ```
+
+##on errors
+If error messages appear on standard headers (stddef.h, stdargs.h etc) 
+you can specify COMPILER_PATH of your compiler for example:
+
+```
+./ccollect example.c -I/usr/lib/clang/3.5.2/include/
+```
+or 
+```
+./ccollect example.c -I/usr/lib/gcc/x86_64-pc-linux-gnu/6.1.1/include
+```
+
+You can know what path exactly you need by typing command:
+```
+echo | gcc  -E -v -
+```
+or
+```
+echo | clang  -E -v -
+```
+see section "#include <...> search starts here:"
+
