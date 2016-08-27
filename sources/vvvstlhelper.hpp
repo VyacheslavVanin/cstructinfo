@@ -1,6 +1,8 @@
 #ifndef VVVSTLHELPER_H
 #define VVVSTLHELPER_H
 #include <algorithm>
+#include <string>
+#include <vector>
     
 template<class C, class P>
 inline C& filter( C&& v, P p )
