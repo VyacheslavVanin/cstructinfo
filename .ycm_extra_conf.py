@@ -93,7 +93,9 @@ flags = [
 '-isystem',
 '/usr/lib/llvm-3.5/include',
 '-isystem',
-'/usr/lib/llvm-3.5/include/clang',
+'/usr/include/clang',
+'-isystem',
+'/usr/include/llvm',
 '-D__STDC_LIMIT_MACROS',
 '-D__STDC_CONSTANT_MACROS'
 ]
