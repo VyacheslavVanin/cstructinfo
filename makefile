@@ -2,7 +2,7 @@ SOURCES:=$(shell find ./sources -name "*.cpp")
 OBJ:=$(patsubst %.cpp,%.o,$(SOURCES))
 
 
-TARGETNAME:=run
+TARGETNAME:=ccollect
 INCDIRS:=$(shell llvm-config --includedir)
 LIBDIRS:=/usr/lib/clang
 LIBS:=clang \
