@@ -4,8 +4,10 @@
 #include <string>
 #include <vector>
     
-template<typename C, class P >
-inline decltype(auto) filter(const C&& v, P p )
+template<typename C, class P,
+    typename = typename std::enable_if_t<std::is_rvalue_reference<C&&>::value>
+    >
+inline decltype(auto) filter(C&& v, P p )
 {
     const auto n = std::copy_if( v.begin(), v.end(), v.begin(), p );
     v.resize( std::distance(v.begin(), n) );
