@@ -39,10 +39,7 @@ std::vector<std::string> splitToTrimmedWords(const std::string& str)
     std::vector<std::string> splited;
 
     split(splited, str, is_any_of(" \t"), token_compress_on );
-    splited = filter(splited, 
-                     [](const auto& str) {return !str.empty();});
-
-    return splited;
+    return filter(splited, [](const auto& str) {return !str.empty();});
 }
 
 /**
