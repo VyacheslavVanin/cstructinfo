@@ -11,7 +11,7 @@ LIBS:=clang \
 		clangEdit clangAST clangLex clangBasic
 
 CXXFLAGS:= $(shell llvm-config --cflags) 
-CXXFLAGS += -g -O0
+CXXFLAGS += -std=c++14 -g -O0
 #CXXFLAGS += -O2
 
 LD:=$(CXX)
