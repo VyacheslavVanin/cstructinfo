@@ -1,16 +1,16 @@
-#ccollect
+#cstructinfo
 Tool used to collect structs and functions info from c/c++ sources to JSON.
 
 ##usage
 Use tool like this:
 ```
-ccolect example.c -I/your/include/path \
+cstructinfo example.c -I/your/include/path \
                   -D_AND_OTHER_COMPILER_OPTIONS_ > output.json
 ```
 
 Do not separate compiler options. For example 
 ```
-ccolect example.c -I /your/include/path \
+cstructinfo example.c -I /your/include/path \
                   -D _AND_OTHER_COMPILER_OPTIONS_ > output.json
 ```
 this do not work.
@@ -56,7 +56,7 @@ int bar(const foo* f)
 ```
 Command:
 ```
-ccollect example.c
+cstructinfo example.c
 ```
 
 Output:
@@ -128,11 +128,11 @@ If error messages appear on standard headers (stddef.h, stdargs.h etc)
 you can specify COMPILER_PATH of your compiler for example:
 
 ```
-./ccollect example.c -I/usr/lib/clang/3.5.2/include/
+./cstructinfo example.c -I/usr/lib/clang/3.5.2/include/
 ```
 or 
 ```
-./ccollect example.c -I/usr/lib/gcc/x86_64-pc-linux-gnu/6.1.1/include
+./cstructinfo example.c -I/usr/lib/gcc/x86_64-pc-linux-gnu/6.1.1/include
 ```
 
 You can know what path exactly you need by typing command:
