@@ -1,14 +1,14 @@
-#cstructinfo
+# cstructinfo
 Tool used to collect structs and functions info from c/c++ sources to JSON.
 
-##usage
+## Usage
 Use tool like this:
 ```
 cstructinfo example.c -I/your/include/path \
                   -D_AND_OTHER_COMPILER_OPTIONS_ > output.json
 ```
 
-Do not separate compiler options. For example 
+Do not separate compiler options. For example
 ```
 cstructinfo example.c -I /your/include/path \
                   -D _AND_OTHER_COMPILER_OPTIONS_ > output.json
@@ -16,11 +16,11 @@ cstructinfo example.c -I /your/include/path \
 this do not work.
 
 
-##build
+## Build
 - depends from libclang-3.5, llvm-3.5, ncurses
   (debian: libclang-dev, llvm-dev, libncursesw5-dev)
 
-##example
+## Example
 Input file example.c:
 ```
 #include <stdio.h>
@@ -123,14 +123,14 @@ Output:
 }
 ```
 
-##on errors
-If error messages appear on standard headers (stddef.h, stdargs.h etc) 
+## On errors
+If error messages appear on standard headers (stddef.h, stdargs.h etc)
 you can specify COMPILER_PATH of your compiler for example:
 
 ```
 ./cstructinfo example.c -I/usr/lib/clang/3.5.2/include/
 ```
-or 
+or
 ```
 ./cstructinfo example.c -I/usr/lib/gcc/x86_64-pc-linux-gnu/6.1.1/include
 ```
@@ -144,4 +144,3 @@ or
 echo | clang  -E -v -
 ```
 see section "#include <...> search starts here:"
-
