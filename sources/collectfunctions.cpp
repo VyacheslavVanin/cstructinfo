@@ -4,6 +4,7 @@
 #include <vector>
 #include <map>
 #include "collectfunctions.h"
+#include "vvvptreehelper.hpp"
 using namespace clang;
 
 std::string
@@ -111,22 +112,23 @@ void printFunctionDecls(clang::ASTContext& Context,
             const auto& t    = f->getType().getAsString();
             //const auto& comment = getComment((Decl*)f);
             ptree param;
-                param.put("param", name);
-                param.put("type", t);
-                const std::string& comment = paramsComments.count(name) ?
-                                             paramsComments[name] :
-                                             "";
-                param.put("comment", comment); 
-            params.push_back( std::make_pair("", param));
+            ptree_add_value(param, "param", name);
+            ptree_add_value(param, "type", t);
+            const std::string& comment = paramsComments.count(name) ?
+                                         paramsComments[name] :
+                                         "";
+            ptree_add_value(param, "comment", comment);
+            ptree_array_add_node(params, param);
         }
         const auto functionName = d->getName().str();
 
-        functiondesc.put( "name", functionName);
-        functiondesc.put( "retval", d->getReturnType().getAsString() );
-        functiondesc.put( "retcomment", paramsComments["return"]);
-        functiondesc.put( "comment", brief);
-        functiondesc.push_back( std::make_pair("params", params));
-        if(!fs.empty()) tree.push_back( std::make_pair("",functiondesc));
+        ptree_add_value(functiondesc, "name", functionName);
+        ptree_add_value(functiondesc, "retval", d->getReturnType().getAsString() );
+        ptree_add_value(functiondesc, "retcomment", paramsComments["return"]);
+        ptree_add_value(functiondesc, "comment", brief);
+        ptree_add_subnode(functiondesc, "params", params);
+        if(!fs.empty())
+            ptree_array_add_node(tree, functiondesc);
     }
 }
 

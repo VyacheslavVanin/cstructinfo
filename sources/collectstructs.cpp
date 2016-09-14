@@ -9,9 +9,9 @@ void addCommonFieldDecl(boost::property_tree::ptree& field,
     const auto& name = decl->getNameAsString();
     const auto& typestring = decl->getType().getAsString();
     const auto& comment = getComment((Decl*)decl);
-    field.put("field", name);
-    field.put("type", typestring);
-    field.put("comment", comment); 
+    ptree_add_value(field, "field", name);
+    ptree_add_value(field, "type", typestring);
+    ptree_add_value(field, "comment", comment); 
 }
 
 void addArrayFieldDecl(boost::property_tree::ptree& field,
@@ -60,7 +60,7 @@ void printStructDecls(clang::ASTContext& Context,
             ptree field;
             addCommonFieldDecl(field, f);
             addArrayFieldDecl(field, f);
-            fields.push_back(std::make_pair("", field));
+            ptree_array_add_node(fields, field);
         }
         auto structName = d->getName().str();
         if(structName.empty())
@@ -70,10 +70,11 @@ void printStructDecls(clang::ASTContext& Context,
 
         const auto& structComment = getComment((Decl*)d);
 
-        structdesc.put( "name", structName);
-        structdesc.put( "comment", structComment);
-        structdesc.push_back( std::make_pair("fields", fields));
-        if(!fs.empty()) tree.push_back( std::make_pair("",structdesc));
+        ptree_add_value(structdesc, "name", structName);
+        ptree_add_value(structdesc, "comment", structComment);
+        ptree_add_subnode(structdesc, "fields", fields);
+        if(!fs.empty())
+            ptree_array_add_node(tree, structdesc);
     }
 }
 
