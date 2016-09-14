@@ -35,5 +35,12 @@ void ptree_array_add_values(boost::property_tree::ptree& arr,
     ptree_array_add_values(arr, args...);
 }
 
+template<typename NODE>
+void ptree_array_add_node(boost::property_tree::ptree& arr,
+                          NODE&& node)
+{
+    arr.push_back(std::make_pair("", node));
+}
+
 #endif
 
