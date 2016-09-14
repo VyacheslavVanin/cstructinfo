@@ -40,7 +40,7 @@ typedef struct foo
 typedef struct foo2
 {
     size_t numFoos;
-    foo foos[10];
+    foo foos[10][20];
 }foo2;
 
 /**
@@ -95,11 +95,14 @@ Output:
                 },
                 {
                     "field": "foos",
-                    "type": "foo [10]",
+                    "type": "foo [10][20]",
                     "comment": "",
                     "array": {
                         "elemType": "foo",
-                        "elemCount": "10"
+                        "size": [
+                            "10",
+                            "20"
+                        ]
                     }
                 }
             ]
