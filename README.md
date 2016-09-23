@@ -17,7 +17,7 @@ this do not work.
 
 
 ## Build
-- depends from libclang-3.5, llvm-3.5, ncurses
+- depends from libclang-3.8, llvm-3.8, ncurses
   (debian: libclang-dev, llvm-dev, libncursesw5-dev)
 
 ## Example
@@ -131,7 +131,7 @@ If error messages appear on standard headers (stddef.h, stdargs.h etc)
 you can specify COMPILER_PATH of your compiler for example:
 
 ```
-./cstructinfo example.c -I/usr/lib/clang/3.5.2/include/
+./cstructinfo example.c -I/usr/lib/clang/3.8.1/include/
 ```
 or
 ```
