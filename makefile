@@ -17,15 +17,18 @@ CXXFLAGS += -std=c++14 -g -O0
 LD:=$(CXX)
 CXXFLAGS+=$(patsubst %,-I%,$(INCDIRS))
 
-LLL:=-lLLVM
+# Commented cause of bug \
+#   "CommandLine Error: Option 'xcore-max-threads' registered more than once!"
+#LLVMLIB:= $(shell llvm-config --libs)
+LLVMLIBLIST:= LLVM LLVMSupport LLVMOption LLVMMC
+LLVMLIB:= $(patsubst %,-l%,$(LLVMLIBLIST))
 
-LIBSFLAGS:=$(shell llvm-config --libs) \
-		   $(patsubst %,-l%,$(LIBS)) \
+LIBSFLAGS:=$(patsubst %,-l%,$(LIBS)) \
+		   $(LLVMLIB) \
 		   $(shell llvm-config --system-libs)
 LFLAGS+= $(shell llvm-config --ldflags) \
 		 $(patsubst %,-L%,$(LIBDIRS)) \
-		 $(LIBSFLAGS) \
-		 $(LLL)
+		 $(LIBSFLAGS)
 
 
 all: $(OBJ)

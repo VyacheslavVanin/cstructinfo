@@ -29,12 +29,13 @@ class CollectFunctionsInfoAction : public clang::ASTFrontendAction
         CollectFunctionsInfoAction(boost::property_tree::ptree& tree)
             : tree(tree) {}    
 
-        virtual clang::ASTConsumer* 
+        virtual std::unique_ptr<clang::ASTConsumer> 
         CreateASTConsumer(clang::CompilerInstance& Compiler,
                           llvm::StringRef InFile)
         {
-            return new ExtractFunctionDataConsumer(&Compiler.getASTContext(),
-                                                   tree);
+            return std::unique_ptr<clang::ASTConsumer>(
+                    new ExtractFunctionDataConsumer(&Compiler.getASTContext(),
+                                                    tree));
         }
 
     boost::property_tree::ptree& tree; 

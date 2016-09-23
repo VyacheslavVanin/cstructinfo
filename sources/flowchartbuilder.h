@@ -24,10 +24,11 @@ class FlowChartAction : public clang::ASTFrontendAction
     public:
         FlowChartAction() {}
 
-        virtual clang::ASTConsumer* CreateASTConsumer(clang::CompilerInstance& Compiler,
+        virtual std::unique_ptr<clang::ASTConsumer> CreateASTConsumer(clang::CompilerInstance& Compiler,
                                                       llvm::StringRef InFile)
         {
-            return new FlowChartConsumer(&Compiler.getASTContext());
+            return std::unique_ptr<clang::ASTConsumer>(
+                            new FlowChartConsumer(&Compiler.getASTContext()));
         }
 };
 

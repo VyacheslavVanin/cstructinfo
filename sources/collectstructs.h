@@ -27,9 +27,13 @@ class CollectStructsInfoAction : public clang::ASTFrontendAction
     public:
         CollectStructsInfoAction(boost::property_tree::ptree& tree): tree(tree) {}    
 
-        virtual clang::ASTConsumer* CreateASTConsumer(clang::CompilerInstance& Compiler, llvm::StringRef InFile)
+        virtual std::unique_ptr<clang::ASTConsumer>
+            CreateASTConsumer(clang::CompilerInstance& Compiler,
+                              llvm::StringRef InFile)
         {
-            return new ExtractStructDataConsumer( &Compiler.getASTContext(), tree );
+            return std::unique_ptr<clang::ASTConsumer>(
+                       new ExtractStructDataConsumer(&Compiler.getASTContext(),
+                                                     tree));
         }
 
     boost::property_tree::ptree& tree; 
