@@ -144,7 +144,7 @@ inline void insertGraphInsteadOf( GRAPH& dst, const GRAPH& src,
 
 template<class GRAPH>
 inline void attachGraph( GRAPH& g, typename boost::graph_traits<GRAPH>::vertex_descriptor to,
-                         GRAPH& newGraph)
+                         const GRAPH& newGraph)
 {
     auto srcInputVertices     = getStartingVertices( newGraph );
     const auto srcToDstOffset = boost::num_vertices( g );
