@@ -4,30 +4,36 @@
 #include <clang/Analysis/AnalysisContext.h>
 #include "vvvclanghelper.hpp"
 
+using printFunctionsParam = std::vector<std::string>;
+
 void printFunctionDecls(clang::ASTContext& Context,
-                        boost::property_tree::ptree& tree);
+                        boost::property_tree::ptree& tree,
+                        const printFunctionsParam& params);
 
 class ExtractFunctionDataConsumer : public clang::ASTConsumer
 {
     public:
         explicit ExtractFunctionDataConsumer(clang::ASTContext* Context,
-                                           boost::property_tree::ptree& tree)
-            :tree(tree)
+                                           boost::property_tree::ptree& tree,
+                                           const printFunctionsParam& params)
+            :tree(tree), params(params)
         {}
 
         virtual void HandleTranslationUnit( clang::ASTContext& Context)
         {
-            printFunctionDecls(Context, tree);
+            printFunctionDecls(Context, tree, params);
         }
 
         boost::property_tree::ptree& tree;
+        const printFunctionsParam& params;
 };
 
 class CollectFunctionsInfoAction : public clang::ASTFrontendAction
 {
     public:
-        CollectFunctionsInfoAction(boost::property_tree::ptree& tree)
-            : tree(tree) {}    
+        CollectFunctionsInfoAction(boost::property_tree::ptree& tree,
+                                   const printFunctionsParam& params)
+            : tree(tree), params(params) {}    
 
         virtual std::unique_ptr<clang::ASTConsumer> 
         CreateASTConsumer(clang::CompilerInstance& Compiler,
@@ -35,10 +41,11 @@ class CollectFunctionsInfoAction : public clang::ASTFrontendAction
         {
             return std::unique_ptr<clang::ASTConsumer>(
                     new ExtractFunctionDataConsumer(&Compiler.getASTContext(),
-                                                    tree));
+                                                    tree, params));
         }
 
-    boost::property_tree::ptree& tree; 
+        boost::property_tree::ptree& tree; 
+        const printFunctionsParam& params;
 };
 
 #endif

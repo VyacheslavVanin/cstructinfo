@@ -34,7 +34,7 @@ int StructAndFuncInfoCollector(int argc, char** argv)
                 new CollectStructsInfoAction(structdescs, myParams),
                 code, cxxparams, name.c_str() );
         runToolOnCodeWithArgs(
-                new CollectFunctionsInfoAction(functiondescs),
+                new CollectFunctionsInfoAction(functiondescs, myParams),
                 code, cxxparams, name.c_str() );
     }
     root.push_back(std::make_pair("structs",structdescs));

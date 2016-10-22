@@ -5,6 +5,8 @@
 #include <map>
 #include "collectfunctions.h"
 #include "vvvptreehelper.hpp"
+#include "myparamnames.hpp"
+
 using namespace clang;
 
 std::string
@@ -92,9 +94,12 @@ getDoxyParams(const ASTContext& ctx, const RawComment* rawcomment)
 }
 
 void printFunctionDecls(clang::ASTContext& Context,
-                        boost::property_tree::ptree& tree)
+                        boost::property_tree::ptree& tree,
+                        const printFunctionsParam& params)
 {
-    const auto declsInMain = getNonSystemDeclarations(Context);
+    const auto declsInMain = contain(params, PARAM_NAME_MAIN_ONLY)
+                            ? getMainFileDeclarations(Context)
+                            : getNonSystemDeclarations(Context);
     const auto functionsDecls = filterFunctions(declsInMain);
     using boost::property_tree::ptree;
 
