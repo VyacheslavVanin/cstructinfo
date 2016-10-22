@@ -28,14 +28,14 @@ int StructAndFuncInfoCollector(int argc, char** argv)
     const auto filenames    = filterNotParams(args);
 
     for( const auto& name: filenames) {
-        const char* code = getSourceFromFile( name.c_str() );
+        const auto code = getSourceFromFile( name.c_str() );
         using namespace clang::tooling;
         runToolOnCodeWithArgs( 
                 new CollectStructsInfoAction(structdescs, myParams),
-                code, cxxparams, name.c_str() );
+                code.c_str(), cxxparams, name.c_str() );
         runToolOnCodeWithArgs(
                 new CollectFunctionsInfoAction(functiondescs, myParams),
-                code, cxxparams, name.c_str() );
+                code.c_str(), cxxparams, name.c_str() );
     }
     root.push_back(std::make_pair("structs",structdescs));
     root.push_back(std::make_pair("functions",functiondescs));

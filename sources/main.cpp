@@ -77,8 +77,9 @@ int printFlowChart(int argc, char** argv)
 
     for(const auto& name: filenames){
         using namespace clang::tooling;
-        const char* code = getSourceFromFile(name.c_str());
-        runToolOnCodeWithArgs(new FlowChartAction(), code, params, name.c_str());
+        const auto code = getSourceFromFile(name.c_str());
+        runToolOnCodeWithArgs(new FlowChartAction(), code.c_str(),
+                              params, name.c_str());
     }
     return 0;
 }

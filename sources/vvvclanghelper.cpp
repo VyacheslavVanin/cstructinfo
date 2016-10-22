@@ -1,4 +1,5 @@
 #include "vvvclanghelper.hpp"
+#include <sstream>
 
 using namespace clang;
 
@@ -152,16 +153,12 @@ std::vector<const Stmt*> getCompoundStmtChildren(const Stmt* s)
     return ret;
 }
  
-char* getSourceFromFile(const char* filename)
+std::string getSourceFromFile(const char* filename)
 {
-    std::ifstream f(filename, std::ios::binary);
-    f.seekg(0, f.end);
-    const size_t fsize = f.tellg();
-    f.seekg(0, f.beg);
-    char* ret = new char[fsize+1];
-    f.read(ret, fsize);
-    f.close();
-    ret[fsize]=0;
-    return ret;
+    using namespace std;
+    ifstream f(filename, ios::binary);
+    stringstream stream;
+    stream << f.rdbuf();
+    return stream.str();
 }
 
