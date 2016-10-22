@@ -4,28 +4,37 @@
 #include <clang/Analysis/AnalysisContext.h>
 #include "vvvclanghelper.hpp"
 
-void printStructDecls(clang::ASTContext& Context, boost::property_tree::ptree& tree);
+using printStructsParam = std::vector<std::string>;
+
+void printStructDecls(clang::ASTContext& Context,
+                      boost::property_tree::ptree& tree,
+                      const printStructsParam& params);
 
 class ExtractStructDataConsumer : public clang::ASTConsumer
 {
     public:
         explicit ExtractStructDataConsumer(clang::ASTContext* Context,
-                                           boost::property_tree::ptree& tree)
-            :tree(tree)
+                                           boost::property_tree::ptree& tree,
+                                           const printStructsParam& params)
+            :tree(tree), params(params)
         {}
 
         virtual void HandleTranslationUnit( clang::ASTContext& Context)
         {
-            printStructDecls(Context, tree);
+            printStructDecls(Context, tree, params);
         }
 
         boost::property_tree::ptree& tree;
+        const printStructsParam& params;
 };
 
 class CollectStructsInfoAction : public clang::ASTFrontendAction
 {
     public:
-        CollectStructsInfoAction(boost::property_tree::ptree& tree): tree(tree) {}    
+        CollectStructsInfoAction(boost::property_tree::ptree& tree,
+                                 const printStructsParam& params)
+                : tree(tree), params(params)
+        {}    
 
         virtual std::unique_ptr<clang::ASTConsumer>
             CreateASTConsumer(clang::CompilerInstance& Compiler,
@@ -33,10 +42,11 @@ class CollectStructsInfoAction : public clang::ASTFrontendAction
         {
             return std::unique_ptr<clang::ASTConsumer>(
                        new ExtractStructDataConsumer(&Compiler.getASTContext(),
-                                                     tree));
+                                                     tree, params));
         }
 
-    boost::property_tree::ptree& tree; 
+        boost::property_tree::ptree& tree; 
+        const printStructsParam& params;
 };
 
 #endif

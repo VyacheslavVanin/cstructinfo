@@ -1,5 +1,7 @@
 #include "collectstructs.h"
 #include "vvvptreehelper.hpp"
+#include "myparamnames.hpp"
+
 using namespace clang;
 
 void addCommonFieldDecl(boost::property_tree::ptree& field,
@@ -44,9 +46,12 @@ void addArrayFieldDecl(boost::property_tree::ptree& field,
 }
 
 void printStructDecls(clang::ASTContext& Context,
-                      boost::property_tree::ptree& tree)
+                      boost::property_tree::ptree& tree,
+                      const printStructsParam& params)
 {
-    const auto declsInMain = getNonSystemDeclarations(Context);
+    const auto declsInMain  = contain(params, PARAM_NAME_MAIN_ONLY)
+                                         ? getMainFileDeclarations(Context)
+                                         : getNonSystemDeclarations(Context);
     const auto structsDecls = filterStructs(declsInMain);
     using boost::property_tree::ptree;
 
