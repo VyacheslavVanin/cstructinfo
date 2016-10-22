@@ -15,10 +15,11 @@ cstructinfo example.c -I /your/include/path \
 ```
 this do not work.
 
+## Parameters
+- --main-only - do not write any structs or functions from included files output, only from files specified.
+- --no-structs - do not write any struct info to output. Do not create "structs" section.
+- --no-functions - do not write any function info to output. Do not create "functions" section.
 
-## Build
-- depends from libclang-3.8, llvm-3.8, ncurses
-  (debian: libclang-dev, llvm-dev, libncursesw5-dev)
 
 ## Example
 Input file example.c:
@@ -125,6 +126,11 @@ Output:
     ]
 }
 ```
+
+## Build
+- depends from libclang-3.8, llvm-3.8, ncurses
+  (debian: libclang-dev, llvm-dev, libncursesw5-dev)
+
 
 ## On errors
 If error messages appear on standard headers (stddef.h, stdargs.h etc)
