@@ -10,8 +10,8 @@ int StructAndFuncInfoCollector(int argc, char** argv)
     if(argc < 2) { std::cerr << "fatal error: no input files"<< std::endl;}
 
     static const std::set<std::string> myParameters = {PARAM_NAME_MAIN_ONLY, 
-                                                PARAM_NAME_NO_FUNCS,
-                                                PARAM_NAME_NO_STRUCTS};
+                                                       PARAM_NAME_NO_FUNCS,
+                                                       PARAM_NAME_NO_STRUCTS};
     static const auto myParamFilter = [](const auto& p)
                                 {return contain(myParameters, p);};
     static const auto notMyParamsFilter = [](const auto& p)
@@ -27,18 +27,26 @@ int StructAndFuncInfoCollector(int argc, char** argv)
     const auto cxxparams    = filter(allParams, notMyParamsFilter);
     const auto filenames    = filterNotParams(args);
 
+    const auto needStructs   = !contain(myParams, PARAM_NAME_NO_STRUCTS);
+    const auto needFunctions = !contain(myParams, PARAM_NAME_NO_FUNCS);
+
     for( const auto& name: filenames) {
-        const auto code = getSourceFromFile( name.c_str() );
         using namespace clang::tooling;
-        runToolOnCodeWithArgs( 
-                new CollectStructsInfoAction(structdescs, myParams),
-                code.c_str(), cxxparams, name.c_str() );
-        runToolOnCodeWithArgs(
-                new CollectFunctionsInfoAction(functiondescs, myParams),
-                code.c_str(), cxxparams, name.c_str() );
+        const auto code = getSourceFromFile( name.c_str() );
+        if(needStructs)
+            runToolOnCodeWithArgs( 
+                    new CollectStructsInfoAction(structdescs, myParams),
+                    code.c_str(), cxxparams, name.c_str() );
+        if(needFunctions)
+            runToolOnCodeWithArgs(
+                    new CollectFunctionsInfoAction(functiondescs, myParams),
+                    code.c_str(), cxxparams, name.c_str() );
     }
-    root.push_back(std::make_pair("structs",structdescs));
-    root.push_back(std::make_pair("functions",functiondescs));
+
+    if(structdescs.size())
+        root.push_back(std::make_pair("structs",structdescs));
+    if(functiondescs.size())
+        root.push_back(std::make_pair("functions",functiondescs));
     boost::property_tree::write_json(std::cout, root);
     return 0;
 }

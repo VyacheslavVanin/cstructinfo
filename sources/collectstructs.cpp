@@ -49,8 +49,6 @@ void printStructDecls(clang::ASTContext& Context,
                       boost::property_tree::ptree& tree,
                       const printStructsParam& params)
 {
-    if(contain(params, PARAM_NAME_NO_STRUCTS))
-        return;
     const auto declsInMain  = contain(params, PARAM_NAME_MAIN_ONLY)
                                          ? getMainFileDeclarations(Context)
                                          : getNonSystemDeclarations(Context);
