@@ -10,8 +10,8 @@ int StructAndFuncInfoCollector(int argc, char** argv)
     if(argc < 2) { std::cerr << "fatal error: no input files"<< std::endl;}
 
     static const std::set<std::string> myParameters = {PARAM_NAME_MAIN_ONLY, 
-                                                PARAM_NAME_FUNC_ONLY,
-                                                PARAM_NAME_STRUCT_ONLY};
+                                                PARAM_NAME_NO_FUNCS,
+                                                PARAM_NAME_NO_STRUCTS};
     static const auto myParamFilter = [](const auto& p)
                                 {return contain(myParameters, p);};
     static const auto notMyParamsFilter = [](const auto& p)

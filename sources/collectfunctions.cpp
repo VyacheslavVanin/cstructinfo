@@ -97,6 +97,9 @@ void printFunctionDecls(clang::ASTContext& Context,
                         boost::property_tree::ptree& tree,
                         const printFunctionsParam& params)
 {
+    if(contain(params, PARAM_NAME_NO_FUNCS))
+        return;
+
     const auto declsInMain = contain(params, PARAM_NAME_MAIN_ONLY)
                             ? getMainFileDeclarations(Context)
                             : getNonSystemDeclarations(Context);
