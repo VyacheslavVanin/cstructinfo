@@ -22,6 +22,19 @@ inline C filter( const C& v, P p)
     return ret;
 }
 
+template<class C, class P>
+inline bool any_of(const C& c, const P& p)
+{
+    return std::any_of(c.cbegin(), c.cend(), p);
+}
+
+template<class C, class V>
+inline bool contain(const C& c, const V& v)
+{
+    return any_of(c, [&v](const auto& e){return e == v;});
+}
+
+
 inline std::string joinStringsWith( const std::vector<std::string>& v, const std::string& delimiter)
 {
     std::string ret;
