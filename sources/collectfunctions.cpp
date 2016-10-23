@@ -62,32 +62,30 @@ auto joinTail(const T& c, size_t n, const S& sep)
 std::map<std::string, std::string>
 getDoxyParams(const ASTContext& ctx, const RawComment* rawcomment)
 {
-    using namespace boost::algorithm;
     std::map<std::string, std::string> ret;
-    if(rawcomment == nullptr) return ret;
+    if(rawcomment == nullptr)
+        return ret;
     
     const SourceManager& sm = ctx.getSourceManager();
     const auto& text = rawcomment->getRawText(sm).str();
     const auto& lines = removeDecorations(text);
 
-    static const auto paramTags = {"@param", "\\param"};
-    static const auto returnTags = {"@return", "\\return"};
+    for(const auto& l: lines) {
+        static const auto paramTags = {"@param", "\\param"};
+        static const auto returnTags = {"@return", "\\return"};
 
-    for(const auto& l: lines)
-    {
         const auto words = splitToTrimmedWords(l);
         const size_t splitedsize = words.size();
-        if(splitedsize < 2) continue;
+        if(splitedsize < 2)
+            continue;
 
         const auto& Tag = words[0];
-        if(contain(paramTags, Tag) && splitedsize>2)
-        {
+        if(contain(paramTags, Tag) && splitedsize > 2) {
             const auto& paramName = words[1];
             const auto& comment = joinTail(words, 2, " ");
             ret[paramName] = comment;
         }
-        else if(contain(returnTags, Tag))
-        {
+        else if(contain(returnTags, Tag)) {
             const auto& comment = joinTail(words, 1, " ");
             ret["return"] = comment;
         }
@@ -109,9 +107,9 @@ void printFunctionDecls(clang::ASTContext& Context,
     for(const auto& d: functionsDecls)
     {
         using namespace std;
-        ptree functiondesc;
         ptree params;
         const RawComment* rc = Context.getRawCommentForDeclNoCache(d);
+        const auto functionName = d->getName().str();
         const auto& brief    = getDoxyBrief(Context, rc);
         auto paramsComments  = getDoxyParams(Context, rc);
         const auto& paramDecls = getFunctionParams( d );
@@ -127,8 +125,8 @@ void printFunctionDecls(clang::ASTContext& Context,
             ptree_add_value(param, "comment", comment);
             ptree_array_add_node(params, param);
         }
-        const auto functionName = d->getName().str();
 
+        ptree functiondesc;
         ptree_add_value(functiondesc, "name", functionName);
         ptree_add_value(functiondesc, "retval", d->getReturnType().getAsString() );
         ptree_add_value(functiondesc, "retcomment", paramsComments["return"]);
