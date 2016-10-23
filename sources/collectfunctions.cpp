@@ -125,7 +125,7 @@ void printFunctionDecls(clang::ASTContext& Context,
 
         ptree functiondesc;
         ptree_add_value(functiondesc, "name", getDeclName(d));
-        ptree_add_value(functiondesc, "retval", d->getReturnType().getAsString() );
+        ptree_add_value(functiondesc, "rettype", d->getReturnType().getAsString() );
         ptree_add_value(functiondesc, "retcomment", paramsComments["return"]);
         ptree_add_value(functiondesc, "comment", brief);
         if(!params.empty())
