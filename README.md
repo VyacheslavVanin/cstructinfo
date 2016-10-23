@@ -112,7 +112,7 @@ Output:
     "functions": [
         {
             "name": "bar",
-            "retval": "int",
+            "rettype": "int",
             "retcomment": "Your return message",
             "comment": "Print foo contents.",
             "params": [
