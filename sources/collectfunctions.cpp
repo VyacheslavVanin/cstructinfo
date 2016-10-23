@@ -70,6 +70,9 @@ getDoxyParams(const ASTContext& ctx, const RawComment* rawcomment)
     const auto& text = rawcomment->getRawText(sm).str();
     const auto& lines = removeDecorations(text);
 
+    static const auto paramTags = {"@param", "\\param"};
+    static const auto returnTags = {"@return", "\\return"};
+
     for(const auto& l: lines)
     {
         const auto words = splitToTrimmedWords(l);
@@ -77,13 +80,13 @@ getDoxyParams(const ASTContext& ctx, const RawComment* rawcomment)
         if(splitedsize < 2) continue;
 
         const auto& Tag = words[0];
-        if(Tag == "@param" && splitedsize>2)
+        if(contain(paramTags, Tag) && splitedsize>2)
         {
             const auto& paramName = words[1];
             const auto& comment = joinTail(words, 2, " ");
             ret[paramName] = comment;
         }
-        else if(Tag == "@return")
+        else if(contain(returnTags, Tag))
         {
             const auto& comment = joinTail(words, 1, " ");
             ret["return"] = comment;
