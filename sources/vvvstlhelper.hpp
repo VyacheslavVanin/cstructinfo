@@ -25,7 +25,7 @@ inline C filter( const C& v, P p)
 template<class C, class P>
 inline bool any_of(const C& c, const P& p)
 {
-    return std::any_of(c.cbegin(), c.cend(), p);
+    return std::any_of(c.begin(), c.end(), p);
 }
 
 template<class C, class V>
