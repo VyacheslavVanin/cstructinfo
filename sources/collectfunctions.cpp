@@ -109,16 +109,15 @@ void printFunctionDecls(clang::ASTContext& Context,
     for(const auto& d: functionsDecls)
     {
         using namespace std;
-        const auto& fs = getFunctionParams( d );
         ptree functiondesc;
         ptree params;
         const RawComment* rc = Context.getRawCommentForDeclNoCache(d);
         const auto& brief    = getDoxyBrief(Context, rc);
         auto paramsComments  = getDoxyParams(Context, rc);
-        for(const auto& f: fs) {
+        const auto& paramDecls = getFunctionParams( d );
+        for(const auto& f: paramDecls) {
             const auto& name = f->getNameAsString();
             const auto& t    = f->getType().getAsString();
-            //const auto& comment = getComment((Decl*)f);
             ptree param;
             ptree_add_value(param, "param", name);
             ptree_add_value(param, "type", t);
@@ -134,7 +133,7 @@ void printFunctionDecls(clang::ASTContext& Context,
         ptree_add_value(functiondesc, "retval", d->getReturnType().getAsString() );
         ptree_add_value(functiondesc, "retcomment", paramsComments["return"]);
         ptree_add_value(functiondesc, "comment", brief);
-        if(!fs.empty())
+        if(!paramDecls.empty())
             ptree_add_subnode(functiondesc, "params", params);
         ptree_array_add_node(tree, functiondesc);
     }
