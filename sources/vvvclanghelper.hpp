@@ -45,6 +45,7 @@ void printStructure( const clang::CXXRecordDecl* d);
 std::vector<const clang::Stmt*> getCompoundStmtChildren(const clang::Stmt* s);
 
 std::string getSourceFromFile(const char* filename);
+std::string getDeclName(const clang::NamedDecl* d);
 
 #endif
 

@@ -98,22 +98,19 @@ void printFunctionDecls(clang::ASTContext& Context,
                         boost::property_tree::ptree& tree,
                         const printFunctionsParam& params)
 {
+    using namespace std;
+    using boost::property_tree::ptree;
+
     const auto declsInMain = contain(params, PARAM_NAME_MAIN_ONLY)
                             ? getMainFileDeclarations(Context)
                             : getNonSystemDeclarations(Context);
-    const auto functionsDecls = filterFunctions(declsInMain);
-    using boost::property_tree::ptree;
 
-    for(const auto& d: functionsDecls)
-    {
-        using namespace std;
+    for(const auto& d: filterFunctions(declsInMain)) {
         ptree params;
         const RawComment* rc = Context.getRawCommentForDeclNoCache(d);
-        const auto functionName = d->getName().str();
         const auto& brief    = getDoxyBrief(Context, rc);
         auto paramsComments  = getDoxyParams(Context, rc);
-        const auto& paramDecls = getFunctionParams( d );
-        for(const auto& f: paramDecls) {
+        for(const auto& f: getFunctionParams(d)) {
             const auto& name = f->getNameAsString();
             const auto& t    = f->getType().getAsString();
             ptree param;
@@ -127,11 +124,11 @@ void printFunctionDecls(clang::ASTContext& Context,
         }
 
         ptree functiondesc;
-        ptree_add_value(functiondesc, "name", functionName);
+        ptree_add_value(functiondesc, "name", getDeclName(d));
         ptree_add_value(functiondesc, "retval", d->getReturnType().getAsString() );
         ptree_add_value(functiondesc, "retcomment", paramsComments["return"]);
         ptree_add_value(functiondesc, "comment", brief);
-        if(!paramDecls.empty())
+        if(!params.empty())
             ptree_add_subnode(functiondesc, "params", params);
         ptree_array_add_node(tree, functiondesc);
     }

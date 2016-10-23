@@ -45,41 +45,33 @@ void addArrayFieldDecl(boost::property_tree::ptree& field,
     ptree_add_subnode(field, "array", arrayInfo);
 }
 
+
 void printStructDecls(clang::ASTContext& Context,
                       boost::property_tree::ptree& tree,
                       const printStructsParam& params)
 {
+    using namespace std;
+    using boost::property_tree::ptree;
+
     const auto declsInMain  = contain(params, PARAM_NAME_MAIN_ONLY)
                                          ? getMainFileDeclarations(Context)
                                          : getNonSystemDeclarations(Context);
-    const auto structsDecls = filterStructs(declsInMain);
-    using boost::property_tree::ptree;
 
-    for(const auto& d: structsDecls)
-    {
-        using namespace std;
-        const auto& fs = getStructFields( d );
-        ptree structdesc;
+    for(const auto& d: filterStructs(declsInMain)) {
         ptree fields;
-        for(const auto& f: fs) {
+        for(const auto& f: getStructFields(d)) {
             ptree field;
             addCommonFieldDecl(field, f);
             addArrayFieldDecl(field, f);
             ptree_array_add_node(fields, field);
         }
-        auto structName = d->getName().str();
-        if(structName.empty())
-            structName = "unnamed from " +
-                         Context.getSourceManager().
-                                          getFilename(d->getLocation()).str();
 
-        const auto& structComment = getComment((Decl*)d);
-
-        ptree_add_value(structdesc, "name", structName);
-        ptree_add_value(structdesc, "comment", structComment);
-        ptree_add_subnode(structdesc, "fields", fields);
-        if(!fs.empty())
-            ptree_array_add_node(tree, structdesc);
+        ptree structdesc;
+        ptree_add_value(structdesc, "name", getDeclName(d));
+        ptree_add_value(structdesc, "comment", getComment((Decl*)d));
+        if(!fields.empty())
+            ptree_add_subnode(structdesc, "fields", fields);
+        ptree_array_add_node(tree, structdesc);
     }
 }
 
