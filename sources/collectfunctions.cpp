@@ -113,12 +113,12 @@ void printFunctionDecls(clang::ASTContext& Context,
         for(const auto& f: getFunctionParams(d)) {
             const auto& name = f->getNameAsString();
             const auto& t    = f->getType().getAsString();
-            ptree param;
-            ptree_add_value(param, "param", name);
-            ptree_add_value(param, "type", t);
             const std::string& comment = paramsComments.count(name) ?
                                          paramsComments[name] :
                                          "";
+            ptree param;
+            ptree_add_value(param, "param", name);
+            ptree_add_value(param, "type", t);
             ptree_add_value(param, "comment", comment);
             ptree_array_add_node(params, param);
         }
