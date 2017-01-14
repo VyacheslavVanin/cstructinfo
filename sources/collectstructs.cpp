@@ -45,6 +45,16 @@ void addArrayFieldDecl(boost::property_tree::ptree& field,
     ptree_add_subnode(field, "array", arrayInfo);
 }
 
+void addBitfieldDecl(boost::property_tree::ptree& field,
+                       const clang::FieldDecl* decl)
+{
+    if(!decl->isBitField())
+        return;
+    const auto& astctx = decl->getASTContext();
+    const auto bitfieldWidth = decl->getBitWidthValue(astctx);
+    using boost::property_tree::ptree;
+    ptree_add_value(field, "bitfieldWidth", bitfieldWidth);
+}
 
 void printStructDecls(clang::ASTContext& Context,
                       boost::property_tree::ptree& tree,
@@ -63,6 +73,7 @@ void printStructDecls(clang::ASTContext& Context,
             ptree field;
             addCommonFieldDecl(field, f);
             addArrayFieldDecl(field, f);
+            addBitfieldDecl(field, f);
             ptree_array_add_node(fields, field);
         }
 
