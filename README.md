@@ -1,6 +1,26 @@
 # cstructinfo
 Tool used to collect structs and functions info from c/c++ sources to JSON.
 
+Collectable data:
+- Functions:
+  - name
+  - prameters (names and types)
+  - return type
+  - comments (in Doxygen format):
+    - function description
+    - parameters description
+    - return description
+    
+- Structs:
+  - name
+  - fields:
+    - name
+    - type
+    - array size (if array)
+    - bitfield width (if bitfield)
+  - comments (in Doxygen format)
+    
+
 ## Usage
 Use tool like this:
 ```
