@@ -44,6 +44,14 @@ typedef struct foo2
     foo foos[10][20];
 }foo2;
 
+typedef struct bitfieldExample
+{
+    unsigned value1;
+    unsigned bit1   :3;
+    unsigned bit2   :6;
+    unsigned bit3   :23;
+}bitfieldExample;
+
 /**
  * @brief Print foo contents.
  * @param f struct to print
@@ -105,6 +113,35 @@ Output:
                             "20"
                         ]
                     }
+                }
+            ]
+        },
+        {
+            "name": "bitfieldExample",
+            "comment": "",
+            "fields": [
+                {
+                    "field": "value1",
+                    "type": "unsigned int",
+                    "comment": ""
+                },
+                {
+                    "field": "bit1",
+                    "type": "unsigned int",
+                    "comment": "",
+                    "bitfieldWidth": "3"
+                },
+                {
+                    "field": "bit2",
+                    "type": "unsigned int",
+                    "comment": "",
+                    "bitfieldWidth": "6"
+                },
+                {
+                    "field": "bit3",
+                    "type": "unsigned int",
+                    "comment": "",
+                    "bitfieldWidth": "23"
                 }
             ]
         }
