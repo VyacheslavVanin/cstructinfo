@@ -56,6 +56,18 @@ void addBitfieldDecl(boost::property_tree::ptree& field,
     ptree_add_value(field, "bitfieldWidth", bitfieldWidth);
 }
 
+void addSizeIfBasic(boost::property_tree::ptree& field,
+                       const clang::FieldDecl* decl)
+{
+    auto type = decl->getType();
+    if(!type->isBuiltinType())
+        return;
+
+    using boost::property_tree::ptree;
+    const auto& astctx = decl->getASTContext();
+    ptree_add_value(field, "builtin", astctx.getTypeSize(type));
+}
+
 void printStructDecls(clang::ASTContext& Context,
                       boost::property_tree::ptree& tree,
                       const printStructsParam& params)
@@ -74,6 +86,7 @@ void printStructDecls(clang::ASTContext& Context,
             addCommonFieldDecl(field, f);
             addArrayFieldDecl(field, f);
             addBitfieldDecl(field, f);
+            addSizeIfBasic(field, f);
             ptree_array_add_node(fields, field);
         }
 
