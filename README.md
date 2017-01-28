@@ -206,7 +206,7 @@ Output:
 ```
 
 ## Build
-- depends from libclang-3.8, llvm-3.8, ncurses
+- depends from libclang version >=3.8, llvm version >=3.8, ncurses
   (debian: libclang-dev, llvm-dev, libncursesw5-dev)
 
 
