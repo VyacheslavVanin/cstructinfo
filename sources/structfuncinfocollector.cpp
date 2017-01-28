@@ -16,7 +16,7 @@ void printHelpIfNeeded(const std::vector<std::string>& params)
     "--no-structs - exclude structs descriptions from output\n"
     "--no-sizes - do not add sizeofs of primitive types to structs descriptions\n"
     "--help - show this help\n";
-    if(contain(params, PARAM_NAME_HELP)){
+    if(params.empty() || contain(params, PARAM_NAME_HELP)){
         std::cout << message << std::endl;
         exit(EXIT_SUCCESS);
     }
@@ -50,7 +50,7 @@ int StructAndFuncInfoCollector(int argc, char** argv)
     const auto needStructs   = !contain(myParams, PARAM_NAME_NO_STRUCTS);
     const auto needFunctions = !contain(myParams, PARAM_NAME_NO_FUNCS);
 
-    printHelpIfNeeded(myParams);
+    printHelpIfNeeded(args);
 
     for( const auto& name: filenames) {
         using namespace clang::tooling;
