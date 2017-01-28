@@ -18,6 +18,7 @@ Collectable data:
     - type
     - array size (if array)
     - bitfield width (if bitfield)
+    - sizeof of primitive types
   - comments (in Doxygen format)
     
 
@@ -39,6 +40,8 @@ this do not work.
 - --main-only - do not write any structs or functions from included files output, only from files specified.
 - --no-structs - do not write any struct info to output. Do not create "structs" section.
 - --no-functions - do not write any function info to output. Do not create "functions" section.
+- --no-sizes - do not add sizeofs of primitive types to structs descriptions (remove "builtin" field)
+- --help - show help
 
 
 ## Example
@@ -47,12 +50,15 @@ Input file example.c:
 #include <stdio.h>
 #include <stdlib.h>
 
+typedef int myint;
+
 typedef struct foo
 {
     /// Comment about a
     int a;
     int b; ///< Comment about b
     int c;
+    myint d;
 }foo;
 
 /*!
@@ -61,14 +67,14 @@ typedef struct foo
 typedef struct foo2
 {
     size_t numFoos;
-    foo foos[10][20];
+    foo foos[10][20][42];
 }foo2;
 
 typedef struct bitfieldExample
 {
     unsigned value1;
-    unsigned bit1   :3;
-    unsigned bit2   :6;
+    unsigned bit1   :3; 
+    unsigned bit2   :6; 
     unsigned bit3   :23;
 }bitfieldExample;
 
@@ -99,17 +105,26 @@ Output:
                 {
                     "field": "a",
                     "type": "int",
-                    "comment": "Comment about a"
+                    "comment": "Comment about a",
+                    "builtin": "32"
                 },
                 {
                     "field": "b",
                     "type": "int",
-                    "comment": "Comment about b"
+                    "comment": "Comment about b",
+                    "builtin": "32"
                 },
                 {
                     "field": "c",
                     "type": "int",
-                    "comment": ""
+                    "comment": "",
+                    "builtin": "32"
+                },
+                {
+                    "field": "d",
+                    "type": "myint",
+                    "comment": "",
+                    "builtin": "32"
                 }
             ]
         },
@@ -120,17 +135,19 @@ Output:
                 {
                     "field": "numFoos",
                     "type": "int",
-                    "comment": ""
+                    "comment": "",
+                    "builtin": "32"
                 },
                 {
                     "field": "foos",
-                    "type": "foo [10][20]",
+                    "type": "foo [10][20][42]",
                     "comment": "",
                     "array": {
                         "elemType": "foo",
                         "size": [
                             "10",
-                            "20"
+                            "20",
+                            "42"
                         ]
                     }
                 }
@@ -143,25 +160,29 @@ Output:
                 {
                     "field": "value1",
                     "type": "unsigned int",
-                    "comment": ""
+                    "comment": "",
+                    "builtin": "32"
                 },
                 {
                     "field": "bit1",
                     "type": "unsigned int",
                     "comment": "",
-                    "bitfieldWidth": "3"
+                    "bitfieldWidth": "3",
+                    "builtin": "32"
                 },
                 {
                     "field": "bit2",
                     "type": "unsigned int",
                     "comment": "",
-                    "bitfieldWidth": "6"
+                    "bitfieldWidth": "6",
+                    "builtin": "32"
                 },
                 {
                     "field": "bit3",
                     "type": "unsigned int",
                     "comment": "",
-                    "bitfieldWidth": "23"
+                    "bitfieldWidth": "23",
+                    "builtin": "32"
                 }
             ]
         }
