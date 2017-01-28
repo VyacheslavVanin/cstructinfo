@@ -78,6 +78,7 @@ void printStructDecls(clang::ASTContext& Context,
     const auto declsInMain  = contain(params, PARAM_NAME_MAIN_ONLY)
                                          ? getMainFileDeclarations(Context)
                                          : getNonSystemDeclarations(Context);
+    const auto needSizes = !contain(params, PARAM_NAME_NO_SIZES);
 
     for(const auto& d: filterStructs(declsInMain)) {
         ptree fields;
@@ -86,7 +87,8 @@ void printStructDecls(clang::ASTContext& Context,
             addCommonFieldDecl(field, f);
             addArrayFieldDecl(field, f);
             addBitfieldDecl(field, f);
-            addSizeIfBasic(field, f);
+            if (needSizes)
+                addSizeIfBasic(field, f);
             ptree_array_add_node(fields, field);
         }
 
