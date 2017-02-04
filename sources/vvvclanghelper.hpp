@@ -20,6 +20,11 @@ std::string decl2str(const clang::Stmt* d, const clang::ASTContext& context);
 
 bool isSystemDecl(const clang::Decl* d);
 
+/**
+ * Test is decl is struct or class
+ * */
+bool isRecord(const clang::Decl* decl);
+
 std::vector<const clang::Decl*> getDeclarations(const clang::ASTContext& context);
 
 std::vector<const clang::Decl*> 

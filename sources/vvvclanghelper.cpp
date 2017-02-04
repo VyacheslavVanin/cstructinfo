@@ -82,13 +82,18 @@ filterFunctions(const std::vector<const Decl*>& decls)
 }
 
  
+bool isRecord(const Decl* decl)
+{
+    const static auto recordKinds = {clang::Decl::Kind::CXXRecord,
+                                     clang::Decl::Kind::Record };
+    return contain(recordKinds, decl->getKind());
+}
+
 std::vector<const RecordDecl*>
 filterStructs(const std::vector<const Decl*>& decls)
 {
     std::vector<const RecordDecl*> ret;
-    const auto fd  = filter(decls, [](const Decl* d)
-                                   { return d->getKind() ==
-                                            clang::Decl::Kind::Record; });
+    const auto fd  = filter(decls, isRecord);
     for(const auto& d: fd)
         ret.push_back(static_cast<const RecordDecl*>(d));
     return ret;
