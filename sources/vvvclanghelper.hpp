@@ -40,6 +40,7 @@ std::vector<const clang::RecordDecl*>
 filterStructs(const std::vector<const clang::Decl*>& decls);
 
 std::vector<const clang::FieldDecl*> getStructFields(const clang::RecordDecl* r);
+std::vector<const clang::CXXMethodDecl*> getStructMethods(const clang::RecordDecl* r);
 
 std::vector<const clang::ParmVarDecl*> getFunctionParams(const clang::FunctionDecl* d);
 

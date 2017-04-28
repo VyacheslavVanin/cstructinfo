@@ -102,11 +102,15 @@ filterStructs(const std::vector<const Decl*>& decls)
  
 std::vector<const FieldDecl*> getStructFields(const RecordDecl* r)
 {
-    std::vector<const FieldDecl*> ret;
-    const auto b = r->field_begin();
-    const auto e = r->field_end();
-    for(auto i = b; i != e; ++i)
-        ret.push_back( *i );
+    return std::vector<const FieldDecl*>(r->field_begin(), r->field_end());
+}
+
+std::vector<const CXXMethodDecl*> getStructMethods(const RecordDecl* r)
+{
+    std::vector<const CXXMethodDecl*> ret;
+    for(auto& i : r->decls())
+        if (i->getKind() == Decl::Kind::CXXMethod)
+            ret.push_back((const CXXMethodDecl*)i);
     return ret;
 }
 
