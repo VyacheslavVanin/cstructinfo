@@ -35,7 +35,8 @@ inline bool contain(const C& c, const V& v)
 }
 
 
-inline std::string joinStringsWith( const std::vector<std::string>& v, const std::string& delimiter)
+inline std::string joinStringsWith(const std::vector<std::string>& v,
+                                   const std::string& delimiter)
 {
     std::string ret;
     const auto numStrings = v.size();    
