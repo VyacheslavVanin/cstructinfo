@@ -63,29 +63,29 @@ std::map<std::string, std::string>
 getDoxyParams(const ASTContext& ctx, const RawComment* rawcomment)
 {
     std::map<std::string, std::string> ret;
-    if(rawcomment == nullptr)
+    if (rawcomment == nullptr)
         return ret;
     
     const SourceManager& sm = ctx.getSourceManager();
     const auto& text = rawcomment->getRawText(sm).str();
     const auto& lines = removeDecorations(text);
 
-    for(const auto& l: lines) {
+    for (const auto& l: lines) {
         static const auto paramTags = {"@param", "\\param"};
         static const auto returnTags = {"@return", "\\return"};
 
         const auto words = splitToTrimmedWords(l);
         const size_t splitedsize = words.size();
-        if(splitedsize < 2)
+        if (splitedsize < 2)
             continue;
 
         const auto& Tag = words[0];
-        if(contain(paramTags, Tag) && splitedsize > 2) {
+        if (contain(paramTags, Tag) && splitedsize > 2) {
             const auto& paramName = words[1];
             const auto& comment = joinTail(words, 2, " ");
             ret[paramName] = comment;
         }
-        else if(contain(returnTags, Tag)) {
+        else if (contain(returnTags, Tag)) {
             const auto& comment = joinTail(words, 1, " ");
             ret["return"] = comment;
         }
@@ -105,12 +105,12 @@ makeFunctionDescriptionNode(const clang::FunctionDecl* d)
     const RawComment* rc = Context.getRawCommentForDeclNoCache(d);
     const auto& brief    = getDoxyBrief(Context, rc);
     auto paramsComments  = getDoxyParams(Context, rc);
-    for(const auto& f: getFunctionParams(d)) {
+    for (const auto& f: getFunctionParams(d)) {
         const auto& name = f->getNameAsString();
         const auto& t    = f->getType().getAsString();
-        const std::string& comment = paramsComments.count(name) ?
-            paramsComments[name] :
-            "";
+        const std::string& comment =
+                            paramsComments.count(name) ? paramsComments[name]
+                                                       : "";
         ptree param;
         ptree_add_value(param, "param", name);
         ptree_add_value(param, "type", t);
@@ -138,7 +138,7 @@ void printFunctionDecls(clang::ASTContext& Context,
                             ? getMainFileDeclarations(Context)
                             : getNonSystemDeclarations(Context);
 
-    for(const auto& d: filterFunctions(declsInMain)) {
+    for (const auto& d: filterFunctions(declsInMain)) {
         const ptree functiondesc = makeFunctionDescriptionNode(d);
         ptree_array_add_node(tree, functiondesc);
     }

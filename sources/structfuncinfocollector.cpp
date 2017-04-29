@@ -17,7 +17,7 @@ void printHelpIfNeeded(const std::vector<std::string>& params)
     "--no-structs - exclude structs descriptions from output\n"
     "--no-sizes - do not add sizeofs of primitive types to structs descriptions\n"
     "--help - show this help\n";
-    if(params.empty() || contain(params, PARAM_NAME_HELP)){
+    if (params.empty() || contain(params, PARAM_NAME_HELP)) {
         std::cout << message << std::endl;
         exit(EXIT_SUCCESS);
     }
@@ -26,7 +26,7 @@ void printHelpIfNeeded(const std::vector<std::string>& params)
 
 int StructAndFuncInfoCollector(int argc, char** argv)
 {
-    if(argc < 2) { std::cerr << "fatal error: no input files"<< std::endl;}
+    if (argc < 2) { std::cerr << "fatal error: no input files"<< std::endl;}
 
     static const std::set<std::string> myParameters = {PARAM_NAME_MAIN_ONLY, 
                                                        PARAM_NAME_NO_FUNCS,
@@ -53,22 +53,22 @@ int StructAndFuncInfoCollector(int argc, char** argv)
 
     printHelpIfNeeded(args);
 
-    for( const auto& name: filenames) {
+    for (const auto& name: filenames) {
         using namespace clang::tooling;
-        const auto code = getSourceFromFile( name.c_str() );
-        if(needStructs)
+        const auto code = getSourceFromFile(name.c_str());
+        if (needStructs)
             runToolOnCodeWithArgs( 
                     new CollectStructsInfoAction(structdescs, myParams),
-                    code.c_str(), cxxparams, name.c_str() );
-        if(needFunctions)
+                    code.c_str(), cxxparams, name.c_str());
+        if (needFunctions)
             runToolOnCodeWithArgs(
                     new CollectFunctionsInfoAction(functiondescs, myParams),
-                    code.c_str(), cxxparams, name.c_str() );
+                    code.c_str(), cxxparams, name.c_str());
     }
 
-    if(structdescs.size())
+    if (structdescs.size())
         root.push_back(std::make_pair("structs",structdescs));
-    if(functiondescs.size())
+    if (functiondescs.size())
         root.push_back(std::make_pair("functions",functiondescs));
     boost::property_tree::write_json(std::cout, root);
     return 0;

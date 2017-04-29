@@ -7,7 +7,7 @@ std::string getComment(Decl* d)
 {
     ASTContext& ctx = d->getASTContext();
     const RawComment* rc = ctx.getRawCommentForDeclNoCache(d);
-    if(rc)
+    if (rc)
         return rc->getBriefText(ctx);
     return "";
 }
@@ -24,7 +24,7 @@ std::string decl2str(const clang::Decl* d, const clang::ASTContext& context )
                        sm.getCharacterData(e) - sm.getCharacterData(b));
 }
 
-std::string decl2str(const clang::Stmt* d, const clang::ASTContext& context )
+std::string decl2str(const clang::Stmt* d, const clang::ASTContext& context)
 {
     using namespace clang;
     const auto& sm = context.getSourceManager();
@@ -48,23 +48,23 @@ std::vector<const Decl*> getDeclarations(const ASTContext& context)
     const auto  tu = context.getTranslationUnitDecl();
     const auto  begin = tu->decls_begin();
     const auto  end = tu->decls_end();
-    for(auto i = begin; i != end; ++i) 
-        ret.push_back( *i );
+    for (auto i = begin; i != end; ++i) 
+        ret.push_back(*i);
     return ret;
 }
 
- std::vector<const Decl*> getNonSystemDeclarations(const ASTContext& context)
+std::vector<const Decl*> getNonSystemDeclarations(const ASTContext& context)
 {
-    const auto decls = getDeclarations( context );
-    return filter( decls, [](const Decl* d) 
+    const auto decls = getDeclarations(context);
+    return filter(decls, [](const Decl* d) 
             { return !d->getASTContext().getSourceManager()
                       .isInSystemHeader(d->getLocStart()); });
 }
 
 std::vector<const Decl*> getMainFileDeclarations(const ASTContext& context)
 {
-    const auto decls = getDeclarations( context );
-    return filter( decls, [](const Decl* d) 
+    const auto decls = getDeclarations(context);
+    return filter(decls, [](const Decl* d) 
             { return d->getASTContext().getSourceManager()
                      .isInMainFile(d->getLocStart()); });
 }
@@ -74,10 +74,10 @@ filterFunctions(const std::vector<const Decl*>& decls)
 {
     std::vector<const FunctionDecl*> ret;
     std::for_each(decls.begin(), decls.end(), [&ret](const Decl* d) {
-                if( d->isFunctionOrFunctionTemplate() && !d->isTemplateDecl()){
-                    const auto funcdecl = static_cast<const FunctionDecl*>(d);
-                    ret.push_back(funcdecl);
-                }});
+            if (d->isFunctionOrFunctionTemplate() && !d->isTemplateDecl()) {
+                const auto funcdecl = static_cast<const FunctionDecl*>(d);
+                ret.push_back(funcdecl);
+            }});
     return ret;
 }
 
@@ -94,7 +94,7 @@ filterStructs(const std::vector<const Decl*>& decls)
 {
     std::vector<const RecordDecl*> ret;
     const auto fd  = filter(decls, isRecord);
-    for(const auto& d: fd)
+    for (const auto& d: fd)
         ret.push_back(static_cast<const RecordDecl*>(d));
     return ret;
 }
@@ -108,7 +108,7 @@ std::vector<const FieldDecl*> getStructFields(const RecordDecl* r)
 std::vector<const CXXMethodDecl*> getStructMethods(const RecordDecl* r)
 {
     std::vector<const CXXMethodDecl*> ret;
-    for(auto& i : r->decls())
+    for (auto& i : r->decls())
         if (i->getKind() == Decl::Kind::CXXMethod)
             ret.push_back((const CXXMethodDecl*)i);
     return ret;
@@ -119,8 +119,8 @@ std::vector<const ParmVarDecl*> getFunctionParams(const FunctionDecl* d)
 {
     std::vector<const ParmVarDecl*> ret;
     const auto numParams = d->param_size();
-    for(unsigned int i =0; i < numParams; ++i)
-        ret.push_back( d->getParamDecl( i ) ); 
+    for (unsigned int i =0; i < numParams; ++i)
+        ret.push_back(d->getParamDecl(i)); 
     return ret;
 }
 
@@ -131,21 +131,21 @@ void printFunction(const FunctionDecl* d)
     cout     << "function name: " << d->getNameAsString() << endl
              << "  result type: " << d->getReturnType().getAsString() << endl;
     const auto params = getFunctionParams(d);
-    for(auto& p: params)
+    for (auto& p: params)
         cout << "  parameter " << p->getNameAsString() <<
                 " of type " << p->getType().getAsString() << endl;
 
-    if(d->hasBody())
+    if (d->hasBody())
         cout << decl2str(d->getBody(), d->getASTContext()) << endl << endl; 
 }
 
  
-void printStructure( const CXXRecordDecl* d)
+void printStructure(const CXXRecordDecl* d)
 {
     using namespace std;
     cout << d->getNameAsString() << endl;
     const auto fs = getStructFields(d);
-    for(const auto& f: fs) {
+    for (const auto& f: fs) {
         const auto name = f->getNameAsString();
         const auto t    = f->getType().getAsString();
         cout << "field: " << name << " of type "<< t << ";" << endl; }
@@ -153,12 +153,7 @@ void printStructure( const CXXRecordDecl* d)
  
 std::vector<const Stmt*> getCompoundStmtChildren(const Stmt* s)
 {
-    std::vector<const Stmt*> ret;
-    const auto b = s->child_begin();
-    const auto e = s->child_end();
-    for(auto i = b; i != e; ++i)
-        ret.push_back(*i);
-    return ret;
+    return std::vector<const Stmt*>(s->child_begin(), s->child_end());
 }
  
 std::string getSourceFromFile(const char* filename)
@@ -173,7 +168,7 @@ std::string getSourceFromFile(const char* filename)
 std::string getDeclName(const clang::NamedDecl* d)
 {
     auto name = d->getName().str();
-    if(name.empty()){
+    if (name.empty()){
         const auto& Context = d->getASTContext();
         const auto& sm = Context.getSourceManager();
         name = "unnamed from " + sm.getFilename(d->getLocation()).str();

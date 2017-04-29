@@ -6,7 +6,7 @@
 using namespace clang;
 
 void addCommonFieldDecl(boost::property_tree::ptree& field,
-                  const clang::FieldDecl* decl)
+                        const clang::FieldDecl* decl)
 {
     using boost::property_tree::ptree;
     const auto& name = decl->getNameAsString();
@@ -21,12 +21,12 @@ void addArrayFieldDecl(boost::property_tree::ptree& field,
                        const clang::FieldDecl* decl)
 {
     auto t = decl->getType();
-    if(!t->isConstantArrayType())
+    if (!t->isConstantArrayType())
         return;
 
     std::vector<uint64_t> arraySizeByDimensions;
 
-    while(t->isConstantArrayType()) {
+    while (t->isConstantArrayType()) {
         ConstantArrayType* ca = (ConstantArrayType*)t->getAsArrayTypeUnsafe();
         const auto elemCount = *ca->getSize().getRawData();
         arraySizeByDimensions.push_back(elemCount);
@@ -37,7 +37,7 @@ void addArrayFieldDecl(boost::property_tree::ptree& field,
     
     using boost::property_tree::ptree;
     ptree arraySize;
-    for(const auto& s: arraySizeByDimensions)
+    for (const auto& s: arraySizeByDimensions)
         ptree_array_add_values(arraySize, s);
 
     ptree arrayInfo;
@@ -47,9 +47,9 @@ void addArrayFieldDecl(boost::property_tree::ptree& field,
 }
 
 void addBitfieldDecl(boost::property_tree::ptree& field,
-                       const clang::FieldDecl* decl)
+                     const clang::FieldDecl* decl)
 {
-    if(!decl->isBitField())
+    if (!decl->isBitField())
         return;
     const auto& astctx = decl->getASTContext();
     const auto bitfieldWidth = decl->getBitWidthValue(astctx);
@@ -58,10 +58,10 @@ void addBitfieldDecl(boost::property_tree::ptree& field,
 }
 
 void addSizeIfBasic(boost::property_tree::ptree& field,
-                       const clang::FieldDecl* decl)
+                    const clang::FieldDecl* decl)
 {
     auto type = decl->getType();
-    if(!type->isBuiltinType())
+    if (!type->isBuiltinType())
         return;
 
     using boost::property_tree::ptree;
@@ -76,7 +76,7 @@ makeStructDescriptionNode(const clang::RecordDecl* d, bool needSizes)
     using boost::property_tree::ptree;
 
     ptree fields;
-    for(const auto& f: getStructFields(d)) {
+    for (const auto& f: getStructFields(d)) {
         ptree field;
         addCommonFieldDecl(field, f);
         addArrayFieldDecl(field, f);
@@ -124,7 +124,7 @@ void printStructDecls(clang::ASTContext& Context,
                                       : getNonSystemDeclarations(Context);
     const auto needSizes = !contain(params, PARAM_NAME_NO_SIZES);
 
-    for(const auto& d: filterStructs(declsInMain)) {
+    for (const auto& d: filterStructs(declsInMain)) {
         const ptree structdesc = makeStructDescriptionNode(d, needSizes);
         ptree_array_add_node(tree, structdesc);
     }
