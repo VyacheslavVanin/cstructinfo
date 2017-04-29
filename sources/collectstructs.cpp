@@ -89,6 +89,18 @@ makeStructDescriptionNode(const clang::RecordDecl* d, bool needSizes)
     ptree methods;
     for (const auto& m: getStructMethods(d)) {
         ptree method = makeFunctionDescriptionNode(m);
+        ptree modifiers;
+        if (m->isStatic())
+            ptree_array_add_values(modifiers, "static");
+        if (m->isConst())
+            ptree_array_add_values(modifiers, "const");
+        if (m->isVirtual())
+            ptree_array_add_values(modifiers, "virtual");
+        if (m->isPure())
+            ptree_array_add_values(modifiers, "pure");
+
+        ptree_add_subnode(method, "modifiers", modifiers);
+
         ptree_array_add_node(methods, method);
     }
 
