@@ -19,6 +19,7 @@ Collectable data:
     - array size (if array)
     - bitfield width (if bitfield)
     - sizeof of primitive types
+  - methods (same as functions)
   - comments (in Doxygen format)
     
 
@@ -45,7 +46,7 @@ this do not work.
 
 
 ## Example
-Input file example.c:
+Input file example.cpp:
 ```
 #include <stdio.h>
 #include <stdlib.h>
@@ -125,6 +126,21 @@ Output:
                     "type": "myint",
                     "comment": "",
                     "builtin": "32"
+                }
+            ],
+            "methods": [
+                {
+                    "name": "method_example",
+                    "rettype": "int",
+                    "retcomment": "sum of foo.a and parameter g",
+                    "comment": "test method description",
+                    "params": [
+                        {
+                            "param": "g",
+                            "type": "int",
+                            "comment": "method parameter doc"
+                        }
+                    ]
                 }
             ]
         },
