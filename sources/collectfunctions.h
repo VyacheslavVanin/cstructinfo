@@ -6,6 +6,9 @@
 
 using printFunctionsParam = std::vector<std::string>;
 
+boost::property_tree::ptree
+makeFunctionDescriptionNode(const clang::FunctionDecl* d);
+
 void printFunctionDecls(clang::ASTContext& Context,
                         boost::property_tree::ptree& tree,
                         const printFunctionsParam& params);

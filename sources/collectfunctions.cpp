@@ -94,6 +94,40 @@ getDoxyParams(const ASTContext& ctx, const RawComment* rawcomment)
     return ret;
 }
 
+boost::property_tree::ptree
+makeFunctionDescriptionNode(const clang::FunctionDecl* d)
+{
+    using namespace std;
+    using boost::property_tree::ptree;
+    const clang::ASTContext& Context = d->getASTContext();
+
+    ptree params;
+    const RawComment* rc = Context.getRawCommentForDeclNoCache(d);
+    const auto& brief    = getDoxyBrief(Context, rc);
+    auto paramsComments  = getDoxyParams(Context, rc);
+    for(const auto& f: getFunctionParams(d)) {
+        const auto& name = f->getNameAsString();
+        const auto& t    = f->getType().getAsString();
+        const std::string& comment = paramsComments.count(name) ?
+            paramsComments[name] :
+            "";
+        ptree param;
+        ptree_add_value(param, "param", name);
+        ptree_add_value(param, "type", t);
+        ptree_add_value(param, "comment", comment);
+        ptree_array_add_node(params, param);
+    }
+
+    ptree functiondesc;
+    ptree_add_value(functiondesc, "name", getDeclName(d));
+    ptree_add_value(functiondesc, "rettype", d->getReturnType().getAsString() );
+    ptree_add_value(functiondesc, "retcomment", paramsComments["return"]);
+    ptree_add_value(functiondesc, "comment", brief);
+    if(!params.empty())
+        ptree_add_subnode(functiondesc, "params", params);
+    return functiondesc;
+}
+
 void printFunctionDecls(clang::ASTContext& Context,
                         boost::property_tree::ptree& tree,
                         const printFunctionsParam& params)
@@ -106,30 +140,7 @@ void printFunctionDecls(clang::ASTContext& Context,
                             : getNonSystemDeclarations(Context);
 
     for(const auto& d: filterFunctions(declsInMain)) {
-        ptree params;
-        const RawComment* rc = Context.getRawCommentForDeclNoCache(d);
-        const auto& brief    = getDoxyBrief(Context, rc);
-        auto paramsComments  = getDoxyParams(Context, rc);
-        for(const auto& f: getFunctionParams(d)) {
-            const auto& name = f->getNameAsString();
-            const auto& t    = f->getType().getAsString();
-            const std::string& comment = paramsComments.count(name) ?
-                                         paramsComments[name] :
-                                         "";
-            ptree param;
-            ptree_add_value(param, "param", name);
-            ptree_add_value(param, "type", t);
-            ptree_add_value(param, "comment", comment);
-            ptree_array_add_node(params, param);
-        }
-
-        ptree functiondesc;
-        ptree_add_value(functiondesc, "name", getDeclName(d));
-        ptree_add_value(functiondesc, "rettype", d->getReturnType().getAsString() );
-        ptree_add_value(functiondesc, "retcomment", paramsComments["return"]);
-        ptree_add_value(functiondesc, "comment", brief);
-        if(!params.empty())
-            ptree_add_subnode(functiondesc, "params", params);
+        const ptree functiondesc = makeFunctionDescriptionNode(d);
         ptree_array_add_node(tree, functiondesc);
     }
 }
