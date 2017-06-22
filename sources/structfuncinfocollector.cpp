@@ -66,10 +66,8 @@ int StructAndFuncInfoCollector(int argc, char** argv)
                     code.c_str(), cxxparams, name.c_str());
     }
 
-    if (structdescs.size())
-        root.push_back(std::make_pair("structs",structdescs));
-    if (functiondescs.size())
-        root.push_back(std::make_pair("functions",functiondescs));
+    root.push_back(std::make_pair("structs", structdescs));
+    root.push_back(std::make_pair("functions", functiondescs));
     boost::property_tree::write_json(std::cout, root);
     return 0;
 }
