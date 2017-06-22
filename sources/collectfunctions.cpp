@@ -113,7 +113,11 @@ makeFunctionDescriptionNode(const clang::FunctionDecl* d)
         ptree_array_add_node(params, param);
     }
 
+    const auto& sm = d->getASTContext().getSourceManager();
+    const auto& locationstring = d->getLocation().printToString(sm);
+
     ptree functiondesc;
+    ptree_add_value(functiondesc, "location", locationstring);
     ptree_add_value(functiondesc, "name", getDeclName(d));
     ptree_add_value(functiondesc, "rettype", d->getReturnType().getAsString());
     ptree_add_value(functiondesc, "retcomment", paramsComments["return"]);
