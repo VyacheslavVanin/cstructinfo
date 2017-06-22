@@ -1,21 +1,18 @@
+#include "collectfunctions.h"
+#include "myparamnames.hpp"
+#include "vvvptreehelper.hpp"
 #include <boost/algorithm/string.hpp>
 #include <functional>
+#include <map>
 #include <string>
 #include <vector>
-#include <map>
-#include "collectfunctions.h"
-#include "vvvptreehelper.hpp"
-#include "myparamnames.hpp"
 
 using namespace clang;
 
-std::string
-getDoxyBrief(const ASTContext& ctx, const RawComment* comment)
+std::string getDoxyBrief(const ASTContext& ctx, const RawComment* comment)
 {
-    return comment ? comment->getBriefText(ctx)
-                   : "";
+    return comment ? comment->getBriefText(ctx) : "";
 }
-
 
 /**
  * Return strings of doxygen comment without comment opening and closing.
@@ -24,15 +21,14 @@ std::vector<std::string> removeDecorations(const std::string& str)
 {
     using namespace boost::algorithm;
     std::vector<std::string> ret;
-    auto docstring = erase_tail_copy(erase_head_copy(str,3), 2);
+    auto docstring = erase_tail_copy(erase_head_copy(str, 3), 2);
     split(ret, docstring, is_any_of("\n"), token_compress_on);
-    std::transform( ret.begin(), ret.end(), ret.begin(),
-                    [](const auto& str) 
-                    { return boost::algorithm::trim_copy(str);} );
-    std::transform( ret.begin(), ret.end(), ret.begin(),
-                    [](const auto& str)
-                    { return str[0]=='*' ? erase_head_copy(str,1) 
-                                         : str; } ); 
+    std::transform(ret.begin(), ret.end(), ret.begin(), [](const auto& str) {
+        return boost::algorithm::trim_copy(str);
+    });
+    std::transform(ret.begin(), ret.end(), ret.begin(), [](const auto& str) {
+        return str[0] == '*' ? erase_head_copy(str, 1) : str;
+    });
     return ret;
 }
 
@@ -41,8 +37,8 @@ std::vector<std::string> splitToTrimmedWords(const std::string& str)
     using namespace boost::algorithm;
     std::vector<std::string> splited;
 
-    split(splited, str, is_any_of(" \t"), token_compress_on );
-    return filter(splited, [](const auto& str) {return !str.empty();});
+    split(splited, str, is_any_of(" \t"), token_compress_on);
+    return filter(splited, [](const auto& str) { return !str.empty(); });
 }
 
 /**
@@ -51,30 +47,30 @@ std::vector<std::string> splitToTrimmedWords(const std::string& str)
  * @param n number of head elements to exclude
  * @param sep separator to insert
  */
-template<class T, typename S>
-auto joinTail(const T& c, size_t n, const S& sep) 
+template <class T, typename S>
+auto joinTail(const T& c, size_t n, const S& sep)
 {
-    const auto& tail = std::vector<std::string>(c.begin() + n, c.end());
+    const auto& tail    = std::vector<std::string>(c.begin() + n, c.end());
     const auto& comment = boost::algorithm::join(tail, sep);
     return comment;
 }
 
-std::map<std::string, std::string>
-getDoxyParams(const ASTContext& ctx, const RawComment* rawcomment)
+std::map<std::string, std::string> getDoxyParams(const ASTContext& ctx,
+                                                 const RawComment* rawcomment)
 {
     std::map<std::string, std::string> ret;
     if (rawcomment == nullptr)
         return ret;
-    
-    const SourceManager& sm = ctx.getSourceManager();
-    const auto& text = rawcomment->getRawText(sm).str();
-    const auto& lines = removeDecorations(text);
 
-    for (const auto& l: lines) {
-        static const auto paramTags = {"@param", "\\param"};
+    const SourceManager& sm = ctx.getSourceManager();
+    const auto& text        = rawcomment->getRawText(sm).str();
+    const auto& lines       = removeDecorations(text);
+
+    for (const auto& l : lines) {
+        static const auto paramTags  = {"@param", "\\param"};
         static const auto returnTags = {"@return", "\\return"};
 
-        const auto words = splitToTrimmedWords(l);
+        const auto words         = splitToTrimmedWords(l);
         const size_t splitedsize = words.size();
         if (splitedsize < 2)
             continue;
@@ -82,12 +78,12 @@ getDoxyParams(const ASTContext& ctx, const RawComment* rawcomment)
         const auto& Tag = words[0];
         if (contain(paramTags, Tag) && splitedsize > 2) {
             const auto& paramName = words[1];
-            const auto& comment = joinTail(words, 2, " ");
-            ret[paramName] = comment;
+            const auto& comment   = joinTail(words, 2, " ");
+            ret[paramName]        = comment;
         }
         else if (contain(returnTags, Tag)) {
             const auto& comment = joinTail(words, 1, " ");
-            ret["return"] = comment;
+            ret["return"]       = comment;
         }
     }
 
@@ -105,12 +101,11 @@ makeFunctionDescriptionNode(const clang::FunctionDecl* d)
     const RawComment* rc = Context.getRawCommentForDeclNoCache(d);
     const auto& brief    = getDoxyBrief(Context, rc);
     auto paramsComments  = getDoxyParams(Context, rc);
-    for (const auto& f: getFunctionParams(d)) {
+    for (const auto& f : getFunctionParams(d)) {
         const auto& name = f->getNameAsString();
         const auto& t    = f->getType().getAsString();
         const std::string& comment =
-                            paramsComments.count(name) ? paramsComments[name]
-                                                       : "";
+            paramsComments.count(name) ? paramsComments[name] : "";
         ptree param;
         ptree_add_value(param, "param", name);
         ptree_add_value(param, "type", t);
@@ -120,7 +115,7 @@ makeFunctionDescriptionNode(const clang::FunctionDecl* d)
 
     ptree functiondesc;
     ptree_add_value(functiondesc, "name", getDeclName(d));
-    ptree_add_value(functiondesc, "rettype", d->getReturnType().getAsString() );
+    ptree_add_value(functiondesc, "rettype", d->getReturnType().getAsString());
     ptree_add_value(functiondesc, "retcomment", paramsComments["return"]);
     ptree_add_value(functiondesc, "comment", brief);
     ptree_add_subnode(functiondesc, "params", params);
@@ -135,12 +130,11 @@ void printFunctionDecls(clang::ASTContext& Context,
     using boost::property_tree::ptree;
 
     const auto declsInMain = contain(params, PARAM_NAME_MAIN_ONLY)
-                            ? getMainFileDeclarations(Context)
-                            : getNonSystemDeclarations(Context);
+                                 ? getMainFileDeclarations(Context)
+                                 : getNonSystemDeclarations(Context);
 
-    for (const auto& d: filterFunctions(declsInMain)) {
+    for (const auto& d : filterFunctions(declsInMain)) {
         const ptree functiondesc = makeFunctionDescriptionNode(d);
         ptree_array_add_node(tree, functiondesc);
     }
 }
-

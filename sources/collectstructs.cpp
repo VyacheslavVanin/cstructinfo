@@ -1,7 +1,7 @@
-#include "collectstructs.h"
-#include "vvvptreehelper.hpp"
-#include "myparamnames.hpp"
 #include "collectfunctions.h"
+#include "collectstructs.h"
+#include "myparamnames.hpp"
+#include "vvvptreehelper.hpp"
 
 using namespace clang;
 
@@ -9,12 +9,12 @@ void addCommonFieldDecl(boost::property_tree::ptree& field,
                         const clang::FieldDecl* decl)
 {
     using boost::property_tree::ptree;
-    const auto& name = decl->getNameAsString();
+    const auto& name       = decl->getNameAsString();
     const auto& typestring = decl->getType().getAsString();
-    const auto& comment = getComment((Decl*)decl);
+    const auto& comment    = getComment((Decl*)decl);
     ptree_add_value(field, "field", name);
     ptree_add_value(field, "type", typestring);
-    ptree_add_value(field, "comment", comment); 
+    ptree_add_value(field, "comment", comment);
 }
 
 void addArrayFieldDecl(boost::property_tree::ptree& field,
@@ -28,16 +28,16 @@ void addArrayFieldDecl(boost::property_tree::ptree& field,
 
     while (t->isConstantArrayType()) {
         ConstantArrayType* ca = (ConstantArrayType*)t->getAsArrayTypeUnsafe();
-        const auto elemCount = *ca->getSize().getRawData();
+        const auto elemCount  = *ca->getSize().getRawData();
         arraySizeByDimensions.push_back(elemCount);
         t = ca->getElementType();
     }
 
     const auto& elementTypeName = t.getAsString();
-    
+
     using boost::property_tree::ptree;
     ptree arraySize;
-    for (const auto& s: arraySizeByDimensions)
+    for (const auto& s : arraySizeByDimensions)
         ptree_array_add_values(arraySize, s);
 
     ptree arrayInfo;
@@ -51,7 +51,7 @@ void addBitfieldDecl(boost::property_tree::ptree& field,
 {
     if (!decl->isBitField())
         return;
-    const auto& astctx = decl->getASTContext();
+    const auto& astctx       = decl->getASTContext();
     const auto bitfieldWidth = decl->getBitWidthValue(astctx);
     using boost::property_tree::ptree;
     ptree_add_value(field, "bitfieldWidth", bitfieldWidth);
@@ -76,7 +76,7 @@ makeStructDescriptionNode(const clang::RecordDecl* d, bool needSizes)
     using boost::property_tree::ptree;
 
     ptree fields;
-    for (const auto& f: getStructFields(d)) {
+    for (const auto& f : getStructFields(d)) {
         ptree field;
         addCommonFieldDecl(field, f);
         addArrayFieldDecl(field, f);
@@ -87,7 +87,7 @@ makeStructDescriptionNode(const clang::RecordDecl* d, bool needSizes)
     }
 
     ptree methods;
-    for (const auto& m: getStructMethods(d)) {
+    for (const auto& m : getStructMethods(d)) {
         ptree method = makeFunctionDescriptionNode(m);
         ptree modifiers;
         if (m->isStatic())
@@ -119,14 +119,13 @@ void printStructDecls(clang::ASTContext& Context,
     using namespace std;
     using boost::property_tree::ptree;
 
-    const auto declsInMain  = contain(params, PARAM_NAME_MAIN_ONLY)
-                                      ? getMainFileDeclarations(Context)
-                                      : getNonSystemDeclarations(Context);
+    const auto declsInMain = contain(params, PARAM_NAME_MAIN_ONLY)
+                                 ? getMainFileDeclarations(Context)
+                                 : getNonSystemDeclarations(Context);
     const auto needSizes = !contain(params, PARAM_NAME_NO_SIZES);
 
-    for (const auto& d: filterStructs(declsInMain)) {
+    for (const auto& d : filterStructs(declsInMain)) {
         const ptree structdesc = makeStructDescriptionNode(d, needSizes);
         ptree_array_add_node(tree, structdesc);
     }
 }
-

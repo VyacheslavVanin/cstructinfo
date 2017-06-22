@@ -6,13 +6,12 @@ void createSingleFlowChart(const clang::FunctionDecl& f)
     const auto& Context = f.getASTContext();
     LangOptions lo;
     AnalysisDeclContextManager m;
-    AnalysisDeclContext*  ac = m.getContext(&f);
-    CFG* cfg = ac->getUnoptimizedCFG();
-    
-    
+    AnalysisDeclContext* ac = m.getContext(&f);
+    CFG* cfg                = ac->getUnoptimizedCFG();
+
     std::cout << f.getName().str() << std::endl;
-    ac->dumpCFG(true); 
-    
+    ac->dumpCFG(true);
+
 #if 0 
     for(auto i = cfg->nodes_begin(); i != cfg->nodes_end(); ++i)
     {
@@ -36,16 +35,15 @@ void createSingleFlowChart(const clang::FunctionDecl& f)
     }
 #endif
 
-    //cfg->dump(lo, false);
+    // cfg->dump(lo, false);
 
     std::cout << "------------------------------------------" << std::endl;
 }
 
 void createFlowCharts(clang::ASTContext& Context)
 {
-    const auto& declsInMain = getNonSystemDeclarations(Context);
+    const auto& declsInMain    = getNonSystemDeclarations(Context);
     const auto& functionsDecls = filterFunctions(declsInMain);
-    for(const auto& f: functionsDecls)
+    for (const auto& f : functionsDecls)
         createSingleFlowChart(*f);
 }
-
