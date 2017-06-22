@@ -104,7 +104,11 @@ makeStructDescriptionNode(const clang::RecordDecl* d, bool needSizes)
         ptree_array_add_node(methods, method);
     }
 
+    const auto& sm = d->getASTContext().getSourceManager();
+    const auto& locationstring = d->getLocation().printToString(sm);
+
     ptree structdesc;
+    ptree_add_value(structdesc, "location", locationstring);
     ptree_add_value(structdesc, "name", getDeclName(d));
     ptree_add_value(structdesc, "comment", getComment((Decl*)d));
     ptree_add_subnode(structdesc, "fields", fields);
