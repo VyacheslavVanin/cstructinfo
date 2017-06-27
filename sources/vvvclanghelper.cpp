@@ -12,9 +12,10 @@ std::string getComment(Decl* d)
     return "";
 }
 
-std::string decl2str(const clang::Decl* d, const clang::ASTContext& context)
+std::string decl2str(const clang::Decl* d)
 {
     using namespace clang;
+    const auto& context = d->getASTContext();
     const auto& sm = context.getSourceManager();
     const SourceLocation b(d->getLocStart()), _e(d->getLocEnd());
     const SourceLocation e(
