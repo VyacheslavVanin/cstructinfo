@@ -70,7 +70,8 @@ void addSizeIfBasic(boost::property_tree::ptree& field,
 }
 
 boost::property_tree::ptree
-makeStructDescriptionNode(const clang::RecordDecl* d, bool needSizes)
+makeStructDescriptionNode(const clang::RecordDecl* d, bool needSizes,
+                          bool needSources)
 {
     using namespace std;
     using boost::property_tree::ptree;
@@ -88,7 +89,7 @@ makeStructDescriptionNode(const clang::RecordDecl* d, bool needSizes)
 
     ptree methods;
     for (const auto& m : getStructMethods(d)) {
-        ptree method = makeFunctionDescriptionNode(m);
+        ptree method = makeFunctionDescriptionNode(m, needSources);
         ptree modifiers;
         if (m->isStatic())
             ptree_array_add_values(modifiers, "static");
@@ -113,6 +114,7 @@ makeStructDescriptionNode(const clang::RecordDecl* d, bool needSizes)
     ptree_add_value(structdesc, "comment", getComment((Decl*)d));
     ptree_add_subnode(structdesc, "fields", fields);
     ptree_add_subnode(structdesc, "methods", methods);
+    ptree_add_value(structdesc, "source", needSources ? decl2str(d) : "");
     return structdesc;
 }
 
@@ -127,9 +129,11 @@ void printStructDecls(clang::ASTContext& Context,
                                  ? getMainFileDeclarations(Context)
                                  : getNonSystemDeclarations(Context);
     const auto needSizes = !contain(params, PARAM_NAME_NO_SIZES);
+    const auto needSources = contain(params, PARAM_NAME_WITH_SOURCE);
 
     for (const auto& d : filterStructs(declsInMain)) {
-        const ptree structdesc = makeStructDescriptionNode(d, needSizes);
+        const ptree structdesc =
+            makeStructDescriptionNode(d, needSizes, needSources);
         ptree_array_add_node(tree, structdesc);
     }
 }

@@ -7,7 +7,7 @@
 using printFunctionsParam = std::vector<std::string>;
 
 boost::property_tree::ptree
-makeFunctionDescriptionNode(const clang::FunctionDecl* d);
+makeFunctionDescriptionNode(const clang::FunctionDecl* d, bool needSources);
 
 void printFunctionDecls(clang::ASTContext& Context,
                         boost::property_tree::ptree& tree,
