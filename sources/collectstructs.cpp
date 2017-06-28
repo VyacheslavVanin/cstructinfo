@@ -113,6 +113,7 @@ makeStructDescriptionNode(const clang::RecordDecl* d, bool needSizes)
     ptree_add_value(structdesc, "comment", getComment((Decl*)d));
     ptree_add_subnode(structdesc, "fields", fields);
     ptree_add_subnode(structdesc, "methods", methods);
+    ptree_add_value(structdesc, "source", decl2str(d));
     return structdesc;
 }
 
