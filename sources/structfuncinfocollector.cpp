@@ -10,7 +10,7 @@ void printHelpIfNeeded(const std::vector<std::string>& params)
 {
     static const char* message =
         "cstructinfo usage:\n"
-        "cstructinfo <input files ...> [clang compiler options] [options]\n"
+        "cstructinfo [options] <input files ...> [clang compiler options]\n"
         "Options:\n"
         "--main-only - do not process any included files. Process only "
         "specified\n"
@@ -18,6 +18,8 @@ void printHelpIfNeeded(const std::vector<std::string>& params)
         "--no-structs - exclude structs descriptions from output\n"
         "--no-sizes - do not add sizeofs of primitive types to structs "
         "descriptions\n"
+        "--with-source - add source field containing 'source'"
+        " of struct/function\n"
         "--help - show this help\n";
     if (params.empty() || contain(params, PARAM_NAME_HELP)) {
         std::cout << message << std::endl;
