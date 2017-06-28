@@ -123,6 +123,7 @@ makeFunctionDescriptionNode(const clang::FunctionDecl* d)
     ptree_add_value(functiondesc, "retcomment", paramsComments["return"]);
     ptree_add_value(functiondesc, "comment", brief);
     ptree_add_subnode(functiondesc, "params", params);
+    ptree_add_value(functiondesc, "source", decl2str(d));
     return functiondesc;
 }
 
