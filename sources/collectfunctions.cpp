@@ -91,7 +91,7 @@ std::map<std::string, std::string> getDoxyParams(const ASTContext& ctx,
 }
 
 boost::property_tree::ptree
-makeFunctionDescriptionNode(const clang::FunctionDecl* d)
+makeFunctionDescriptionNode(const clang::FunctionDecl* d, bool needSources)
 {
     using namespace std;
     using boost::property_tree::ptree;
@@ -123,7 +123,7 @@ makeFunctionDescriptionNode(const clang::FunctionDecl* d)
     ptree_add_value(functiondesc, "retcomment", paramsComments["return"]);
     ptree_add_value(functiondesc, "comment", brief);
     ptree_add_subnode(functiondesc, "params", params);
-    ptree_add_value(functiondesc, "source", decl2str(d));
+    ptree_add_value(functiondesc, "source", needSources ? decl2str(d) : "");
     return functiondesc;
 }
 
@@ -137,9 +137,9 @@ void printFunctionDecls(clang::ASTContext& Context,
     const auto declsInMain = contain(params, PARAM_NAME_MAIN_ONLY)
                                  ? getMainFileDeclarations(Context)
                                  : getNonSystemDeclarations(Context);
-
+    const auto needSources = contain(params, PARAM_NAME_WITH_SOURCE);
     for (const auto& d : filterFunctions(declsInMain)) {
-        const ptree functiondesc = makeFunctionDescriptionNode(d);
+        const ptree functiondesc = makeFunctionDescriptionNode(d, needSources);
         ptree_array_add_node(tree, functiondesc);
     }
 }

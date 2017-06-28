@@ -34,7 +34,7 @@ int StructAndFuncInfoCollector(int argc, char** argv)
 
     static const std::set<std::string> myParameters = {
         PARAM_NAME_MAIN_ONLY, PARAM_NAME_NO_FUNCS, PARAM_NAME_NO_STRUCTS,
-        PARAM_NAME_NO_SIZES, PARAM_NAME_HELP};
+        PARAM_NAME_NO_SIZES, PARAM_NAME_HELP, PARAM_NAME_WITH_SOURCE};
     static const auto myParamFilter = [](const auto& p) {
         return contain(myParameters, p);
     };
