@@ -42,6 +42,7 @@ this do not work.
 - --no-structs - do not write any struct info to output. Do not create "structs" section.
 - --no-functions - do not write any function info to output. Do not create "functions" section.
 - --no-sizes - do not add sizeofs of primitive types to structs descriptions (remove "builtin" field)
+- --with-source - add source field containing 'source' of struct/function
 - --help - show help
 
 
@@ -92,7 +93,7 @@ int bar(const foo* f)
 ```
 Command:
 ```
-cstructinfo example.c
+cstructinfo example.cpp
 ```
 
 Output:
@@ -100,6 +101,7 @@ Output:
 {
     "structs": [
         {
+            "location": "example.cpp:6:16",
             "name": "foo",
             "comment": "",
             "fields": [
@@ -128,23 +130,11 @@ Output:
                     "builtin": "32"
                 }
             ],
-            "methods": [
-                {
-                    "name": "method_example",
-                    "rettype": "int",
-                    "retcomment": "sum of foo.a and parameter g",
-                    "comment": "test method description",
-                    "params": [
-                        {
-                            "param": "g",
-                            "type": "int",
-                            "comment": "method parameter doc"
-                        }
-                    ]
-                }
-            ]
+            "methods": "",
+            "source": ""
         },
         {
+            "location": "example.cpp:18:16",
             "name": "foo2",
             "comment": "It is foo2 description",
             "fields": [
@@ -167,9 +157,12 @@ Output:
                         ]
                     }
                 }
-            ]
+            ],
+            "methods": "",
+            "source": ""
         },
         {
+            "location": "example.cpp:24:16",
             "name": "bitfieldExample",
             "comment": "",
             "fields": [
@@ -200,11 +193,14 @@ Output:
                     "bitfieldWidth": "23",
                     "builtin": "32"
                 }
-            ]
+            ],
+            "methods": "",
+            "source": ""
         }
     ],
     "functions": [
         {
+            "location": "example.cpp:37:5",
             "name": "bar",
             "rettype": "int",
             "retcomment": "Your return message",
@@ -215,7 +211,8 @@ Output:
                     "type": "const foo *",
                     "comment": "struct to print"
                 }
-            ]
+            ],
+            "source": ""
         }
     ]
 }
