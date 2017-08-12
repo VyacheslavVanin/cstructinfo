@@ -107,7 +107,7 @@ makeFunctionDescriptionNode(const clang::FunctionDecl* d, bool needSources)
         const std::string& comment =
             paramsComments.count(name) ? paramsComments[name] : "";
         ptree param;
-        ptree_add_value(param, "param", name);
+        ptree_add_value(param, "name", name);
         ptree_add_value(param, "type", t);
         ptree_add_value(param, "comment", comment);
         ptree_array_add_node(params, param);

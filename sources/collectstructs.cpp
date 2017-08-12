@@ -12,7 +12,7 @@ void addCommonFieldDecl(boost::property_tree::ptree& field,
     const auto& name       = decl->getNameAsString();
     const auto& typestring = decl->getType().getAsString();
     const auto& comment    = getComment((Decl*)decl);
-    ptree_add_value(field, "field", name);
+    ptree_add_value(field, "name", name);
     ptree_add_value(field, "type", typestring);
     ptree_add_value(field, "comment", comment);
 }
