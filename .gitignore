@@ -1,5 +1,3 @@
 *.o
 *.swp
-.ycm_extra_conf.pyc
-cstructinfo
-__pycache__
+build/
