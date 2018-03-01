@@ -12,8 +12,10 @@ file(GLOB_RECURSE HDRS sources/*.h sources/*.hpp)
 
 add_executable(cstructinfo ${SRCS} ${HDRS})
 
-target_link_libraries(cstructinfo
-    clang clangAST clangFrontend clangLex clangSerialization clangDriver
+set(CLANG_LIBS
+    clangAST clangFrontend clangLex clangSerialization clangDriver
     clangTooling clangParse clangSema clangAnalysis clangRewriteFrontend
-    clangEdit clangAST clangLex clangBasic
+    clangEdit clangAST clangLex clangBasic clang)
+
+target_link_libraries(cstructinfo ${CLANG_LIBS} ${CLANG_LIBS}
     LLVM LLVMSupport LLVMOption LLVMMC)
