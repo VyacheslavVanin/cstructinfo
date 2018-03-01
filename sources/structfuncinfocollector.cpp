@@ -49,10 +49,10 @@ int StructAndFuncInfoCollector(int argc, char** argv)
     boost::property_tree::ptree functiondescs;
 
     const auto args      = argstoarray(argc, argv);
-    const auto allParams = filterParams(args);
+    const auto allParams = filterNotSourceFiles(args);
     const auto myParams  = filter(allParams, myParamFilter);
     const auto cxxparams = filter(allParams, notMyParamsFilter);
-    const auto filenames = filterNotParams(args);
+    const auto filenames = filterSourceFiles(args);
 
     const auto needStructs   = !contain(myParams, PARAM_NAME_NO_STRUCTS);
     const auto needFunctions = !contain(myParams, PARAM_NAME_NO_FUNCS);
