@@ -30,13 +30,6 @@ cstructinfo example.c -I/your/include/path \
                   -D_AND_OTHER_COMPILER_OPTIONS_ > output.json
 ```
 
-Do not separate compiler options. For example
-```
-cstructinfo example.c -I /your/include/path \
-                  -D _AND_OTHER_COMPILER_OPTIONS_ > output.json
-```
-this do not work.
-
 ## Parameters
 - --main-only - do not write any structs or functions from included files output, only from files specified.
 - --no-structs - do not write any struct info to output. Do not create "structs" section.
