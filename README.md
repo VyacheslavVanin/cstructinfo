@@ -26,9 +26,11 @@ Collectable data:
 ## Usage
 Use tool like this:
 ```
-cstructinfo example.c -I/your/include/path \
-                  -D_AND_OTHER_COMPILER_OPTIONS_ > output.json
+cstructinfo example.c -I /your/include/path \
+                  -D _AND_OTHER_COMPILER_OPTIONS_ > output.json
 ```
+Also flags from compile_commands.json will be used if found any in file
+directory or any parent directory.
 
 ## Parameters
 - --main-only - do not write any structs or functions from included files output, only from files specified.
