@@ -28,6 +28,31 @@ void printHelpIfNeeded(const std::vector<std::string>& params)
     return;
 }
 
+std::vector<std::string> autoDetectFlags(const std::string& filename)
+{
+    using clang::tooling::CompilationDatabase;
+
+    std::string error;
+    const auto compile_db =
+        CompilationDatabase::autoDetectFromSource(filename, error);
+    if (!compile_db) {
+        std::cout << error << "\n";
+        return {};
+    }
+
+    const auto& ccs = compile_db->getCompileCommands(filename);
+    if (ccs.empty())
+        return {};
+
+    const auto& cc = ccs.front();
+    const auto& cl = cc.CommandLine;
+    if (cl.size() <= 5)
+        return {};
+
+    // remove command (/usr/bin/c++) and -c ..foo.cpp -o ..foo.o
+    return std::vector<std::string>(cl.begin() + 1, cl.end() - 4);
+}
+
 int StructAndFuncInfoCollector(int argc, char** argv)
 {
     if (argc < 2) {
@@ -36,7 +61,7 @@ int StructAndFuncInfoCollector(int argc, char** argv)
 
     static const std::set<std::string> myParameters = {
         PARAM_NAME_MAIN_ONLY, PARAM_NAME_NO_FUNCS, PARAM_NAME_NO_STRUCTS,
-        PARAM_NAME_NO_SIZES, PARAM_NAME_HELP, PARAM_NAME_WITH_SOURCE};
+        PARAM_NAME_NO_SIZES,  PARAM_NAME_HELP,     PARAM_NAME_WITH_SOURCE};
     static const auto myParamFilter = [](const auto& p) {
         return contain(myParameters, p);
     };
@@ -48,13 +73,13 @@ int StructAndFuncInfoCollector(int argc, char** argv)
     boost::property_tree::ptree structdescs;
     boost::property_tree::ptree functiondescs;
 
-    const auto args      = argstoarray(argc, argv);
+    const auto args = argstoarray(argc, argv);
     const auto allParams = filterNotSourceFiles(args);
-    const auto myParams  = filter(allParams, myParamFilter);
+    const auto myParams = filter(allParams, myParamFilter);
     const auto cxxparams = filter(allParams, notMyParamsFilter);
     const auto filenames = filterSourceFiles(args);
 
-    const auto needStructs   = !contain(myParams, PARAM_NAME_NO_STRUCTS);
+    const auto needStructs = !contain(myParams, PARAM_NAME_NO_STRUCTS);
     const auto needFunctions = !contain(myParams, PARAM_NAME_NO_FUNCS);
 
     printHelpIfNeeded(args);
@@ -62,14 +87,17 @@ int StructAndFuncInfoCollector(int argc, char** argv)
     for (const auto& name : filenames) {
         using namespace clang::tooling;
         const auto code = getSourceFromFile(name.c_str());
+        const auto& compile_commands = autoDetectFlags(name);
+        const auto& params =
+            compile_commands.size() ? compile_commands + cxxparams : cxxparams;
         if (needStructs)
             runToolOnCodeWithArgs(
                 new CollectStructsInfoAction(structdescs, myParams),
-                code.c_str(), cxxparams, name.c_str());
+                code.c_str(), params, name.c_str());
         if (needFunctions)
             runToolOnCodeWithArgs(
                 new CollectFunctionsInfoAction(functiondescs, myParams),
-                code.c_str(), cxxparams, name.c_str());
+                code.c_str(), params, name.c_str());
     }
 
     root.push_back(std::make_pair("structs", structdescs));

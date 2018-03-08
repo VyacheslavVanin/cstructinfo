@@ -34,6 +34,14 @@ inline bool contain(const C& c, const V& v)
     return any_of(c, [&v](const auto& e) { return e == v; });
 }
 
+template<typename T>
+std::vector<T> operator+(const std::vector<T>& sl1, const std::vector<T>& sl2)
+{
+    auto ret = sl1;
+    ret.insert(ret.end(), sl2.begin(), sl2.end());
+    return ret;
+}
+
 inline std::string joinStringsWith(const std::vector<std::string>& v,
                                    const std::string& delimiter)
 {

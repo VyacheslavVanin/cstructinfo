@@ -165,7 +165,7 @@ std::string getSourceFromFile(const char* filename)
 
 std::string getDeclName(const clang::NamedDecl* d)
 {
-    auto name = d->getName().str();
+    auto name = d->getNameAsString();
     if (name.empty()) {
         const auto& Context = d->getASTContext();
         const auto& sm      = Context.getSourceManager();
