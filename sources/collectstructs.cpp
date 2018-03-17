@@ -121,20 +121,17 @@ makeStructDescriptionNode(const clang::RecordDecl* d, bool needSizes,
     return structdesc;
 }
 
-void printStructDecls(clang::ASTContext& Context,
+void printStructDecls(const std::vector<const clang::Decl*>& decls,
                       boost::property_tree::ptree& tree,
                       const ParamList& params)
 {
     using namespace std;
     using boost::property_tree::ptree;
 
-    const auto declsInMain = contain(params, PARAM_NAME_MAIN_ONLY)
-                                 ? getMainFileDeclarations(Context)
-                                 : getNonSystemDeclarations(Context);
     const auto needSizes = !contain(params, PARAM_NAME_NO_SIZES);
     const auto needSources = contain(params, PARAM_NAME_WITH_SOURCE);
 
-    for (const auto& d : filterStructs(declsInMain)) {
+    for (const auto& d : filterStructs(decls)) {
         const ptree structdesc =
             makeStructDescriptionNode(d, needSizes, needSources);
         ptree_array_add_node(tree, structdesc);

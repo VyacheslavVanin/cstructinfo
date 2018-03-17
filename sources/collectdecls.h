@@ -9,10 +9,10 @@ using ParamList = std::vector<std::string>;
 boost::property_tree::ptree
 makeFunctionDescriptionNode(const clang::FunctionDecl* d, bool needSources);
 
-void printFunctionDecls(clang::ASTContext& Context,
+void printFunctionDecls(const std::vector<const clang::Decl*>& decls,
                         boost::property_tree::ptree& tree,
                         const ParamList& params);
-void printStructDecls(clang::ASTContext& Context,
+void printStructDecls(const std::vector<const clang::Decl*>& decls,
                       boost::property_tree::ptree& tree,
                       const ParamList& params);
 
@@ -34,11 +34,13 @@ public:
     {
         const auto needStructs = !contain(params, PARAM_NAME_NO_STRUCTS);
         const auto needFunctions = !contain(params, PARAM_NAME_NO_FUNCS);
-
+        const auto declsInMain = contain(params, PARAM_NAME_MAIN_ONLY)
+                                     ? getMainFileDeclarations(Context)
+                                     : getNonSystemDeclarations(Context);
         if (needFunctions)
-            printFunctionDecls(Context, functiondescs, params);
+            printFunctionDecls(declsInMain, functiondescs, params);
         if (needStructs)
-            printStructDecls(Context, structdescs, params);
+            printStructDecls(declsInMain, structdescs, params);
     }
 
     boost::property_tree::ptree& tree;

@@ -37,18 +37,15 @@ makeFunctionDescriptionNode(const clang::FunctionDecl* d, bool needSources)
     return functiondesc;
 }
 
-void printFunctionDecls(clang::ASTContext& Context,
+void printFunctionDecls(const std::vector<const clang::Decl*>& decls,
                         boost::property_tree::ptree& tree,
                         const ParamList& params)
 {
     using namespace std;
     using boost::property_tree::ptree;
 
-    const auto declsInMain = contain(params, PARAM_NAME_MAIN_ONLY)
-                                 ? getMainFileDeclarations(Context)
-                                 : getNonSystemDeclarations(Context);
     const auto needSources = contain(params, PARAM_NAME_WITH_SOURCE);
-    for (const auto& d : filterFunctions(declsInMain)) {
+    for (const auto& d : filterFunctions(decls)) {
         const ptree functiondesc = makeFunctionDescriptionNode(d, needSources);
         ptree_array_add_node(tree, functiondesc);
     }
