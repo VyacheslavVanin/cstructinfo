@@ -1,6 +1,5 @@
 #include "arghelper.hpp"
-#include "collectfunctions.h"
-#include "collectstructs.h"
+#include "collectdecls.h"
 #include "myparamnames.hpp"
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
@@ -70,17 +69,12 @@ int StructAndFuncInfoCollector(int argc, char** argv)
     };
 
     boost::property_tree::ptree root;
-    boost::property_tree::ptree structdescs;
-    boost::property_tree::ptree functiondescs;
 
     const auto args = argstoarray(argc, argv);
     const auto allParams = filterNotSourceFiles(args);
     const auto myParams = filter(allParams, myParamFilter);
     const auto cxxparams = filter(allParams, notMyParamsFilter);
     const auto filenames = filterSourceFiles(args);
-
-    const auto needStructs = !contain(myParams, PARAM_NAME_NO_STRUCTS);
-    const auto needFunctions = !contain(myParams, PARAM_NAME_NO_FUNCS);
 
     printHelpIfNeeded(args);
 
@@ -90,18 +84,10 @@ int StructAndFuncInfoCollector(int argc, char** argv)
         const auto& compile_commands = autoDetectFlags(name);
         const auto& params =
             compile_commands.size() ? compile_commands + cxxparams : cxxparams;
-        if (needStructs)
-            runToolOnCodeWithArgs(
-                new CollectStructsInfoAction(structdescs, myParams),
-                code.c_str(), params, name.c_str());
-        if (needFunctions)
-            runToolOnCodeWithArgs(
-                new CollectFunctionsInfoAction(functiondescs, myParams),
-                code.c_str(), params, name.c_str());
+        runToolOnCodeWithArgs(new CollectDeclsAction(root, myParams),
+                              code.c_str(), params, name.c_str());
     }
 
-    root.push_back(std::make_pair("structs", structdescs));
-    root.push_back(std::make_pair("functions", functiondescs));
     boost::property_tree::write_json(std::cout, root);
     return 0;
 }

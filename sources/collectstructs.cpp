@@ -1,9 +1,12 @@
-#include "collectfunctions.h"
-#include "collectstructs.h"
+#include "collectdecls.h"
 #include "myparamnames.hpp"
 #include "vvvptreehelper.hpp"
+#include "vvvclanghelper.hpp"
 
 using namespace clang;
+
+boost::property_tree::ptree
+makeFunctionDescriptionNode(const clang::FunctionDecl* d, bool needSources);
 
 void addCommonFieldDecl(boost::property_tree::ptree& field,
                         const clang::FieldDecl* decl)
@@ -120,7 +123,7 @@ makeStructDescriptionNode(const clang::RecordDecl* d, bool needSizes,
 
 void printStructDecls(clang::ASTContext& Context,
                       boost::property_tree::ptree& tree,
-                      const printStructsParam& params)
+                      const ParamList& params)
 {
     using namespace std;
     using boost::property_tree::ptree;

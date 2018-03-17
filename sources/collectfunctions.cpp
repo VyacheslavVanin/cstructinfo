@@ -1,4 +1,4 @@
-#include "collectfunctions.h"
+#include "collectdecls.h"
 #include "myparamnames.hpp"
 #include "vvvptreehelper.hpp"
 #include "doxygen_utils.hpp"
@@ -39,7 +39,7 @@ makeFunctionDescriptionNode(const clang::FunctionDecl* d, bool needSources)
 
 void printFunctionDecls(clang::ASTContext& Context,
                         boost::property_tree::ptree& tree,
-                        const printFunctionsParam& params)
+                        const ParamList& params)
 {
     using namespace std;
     using boost::property_tree::ptree;
