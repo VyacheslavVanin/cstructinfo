@@ -3,9 +3,9 @@
 
 using namespace clang;
 
-std::string getComment(Decl* d)
+std::string getComment(const Decl* d)
 {
-    ASTContext& ctx      = d->getASTContext();
+    const ASTContext& ctx      = d->getASTContext();
     const RawComment* rc = ctx.getRawCommentForDeclNoCache(d);
     if (rc)
         return rc->getBriefText(ctx);

@@ -12,7 +12,7 @@
 #include <iostream>
 #include <vector>
 
-std::string getComment(clang::Decl* d);
+std::string getComment(const clang::Decl* d);
 
 std::string decl2str(const clang::Decl* d);
 std::string decl2str(const clang::Stmt* d, const clang::ASTContext& context);
