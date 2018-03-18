@@ -4,6 +4,8 @@
 #include "doxygen_utils.hpp"
 #include <string>
 
+using ParamList = std::vector<std::string>;
+
 boost::property_tree::ptree
 makeFunctionDescriptionNode(const clang::FunctionDecl* d, bool needSources)
 {

@@ -3,18 +3,10 @@
 #include "vvvclanghelper.hpp"
 #include <boost/property_tree/ptree.hpp>
 #include <clang/Analysis/AnalysisContext.h>
+#include "collectfunctions.hpp"
+#include "collectstructs.hpp"
 
 using ParamList = std::vector<std::string>;
-
-boost::property_tree::ptree
-makeFunctionDescriptionNode(const clang::FunctionDecl* d, bool needSources);
-
-void printFunctionDecls(const std::vector<const clang::Decl*>& decls,
-                        boost::property_tree::ptree& tree,
-                        const ParamList& params);
-void printStructDecls(const std::vector<const clang::Decl*>& decls,
-                      boost::property_tree::ptree& tree,
-                      const ParamList& params);
 
 class ExtractDataConsumer : public clang::ASTConsumer {
 public:

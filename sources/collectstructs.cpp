@@ -1,12 +1,11 @@
-#include "collectdecls.h"
+#include "collectstructs.hpp"
 #include "myparamnames.hpp"
 #include "vvvptreehelper.hpp"
 #include "vvvclanghelper.hpp"
+#include "collectfunctions.hpp"
 
 using namespace clang;
-
-boost::property_tree::ptree
-makeFunctionDescriptionNode(const clang::FunctionDecl* d, bool needSources);
+using ParamList = std::vector<std::string>;
 
 void addCommonFieldDecl(boost::property_tree::ptree& field,
                         const clang::FieldDecl* decl)
