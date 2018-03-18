@@ -1,8 +1,10 @@
 #include "doxygen_utils.hpp"
 #include "vvvclanghelper.hpp"
 #include <boost/algorithm/string.hpp>
+#include "stdhelper/containerhelper.hpp"
 
 using namespace clang;
+using namespace vvv::helpers;
 
 /**
  * Return strings of doxygen comment without comment opening and closing.

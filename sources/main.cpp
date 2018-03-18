@@ -1,7 +1,6 @@
 #include "arghelper.hpp"
 #include "structfuncinfocollector.hpp"
 #include "vvvclanghelper.hpp"
-#include "vvvstlhelper.hpp"
 #include <boost/algorithm/string.hpp>
 #include <clang/Analysis/AnalysisContext.h>
 #include <clang/Basic/LangOptions.h>

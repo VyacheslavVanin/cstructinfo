@@ -1,10 +1,13 @@
 #include "collectstructs.hpp"
+#include "stdhelper/containerhelper.hpp"
 #include "myparamnames.hpp"
 #include "vvvptreehelper.hpp"
 #include "vvvclanghelper.hpp"
 #include "collectfunctions.hpp"
 
 using namespace clang;
+using namespace vvv::helpers;
+
 using ParamList = std::vector<std::string>;
 
 void addCommonFieldDecl(boost::property_tree::ptree& field,

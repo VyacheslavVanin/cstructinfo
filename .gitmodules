@@ -1,0 +1,3 @@
+[submodule "stdhelper"]
+	path = stdhelper
+	url = http://github.com/VyacheslavVanin/stdhelper

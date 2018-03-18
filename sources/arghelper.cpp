@@ -1,8 +1,9 @@
 #include "arghelper.hpp"
 #include "vvvclanghelper.hpp"
-#include "vvvstlhelper.hpp"
+#include "stdhelper/containerhelper.hpp"
 
 using string_list = CxxToolArgs::string_list;
+using namespace vvv::helpers;
 
 std::vector<std::string> argstoarray(int argc, const char** argv)
 {

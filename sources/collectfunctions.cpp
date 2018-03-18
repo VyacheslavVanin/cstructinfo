@@ -1,8 +1,11 @@
 #include "collectdecls.h"
+#include <string>
+#include "stdhelper/containerhelper.hpp"
 #include "myparamnames.hpp"
 #include "vvvptreehelper.hpp"
 #include "doxygen_utils.hpp"
-#include <string>
+
+using namespace vvv::helpers;
 
 using ParamList = std::vector<std::string>;
 

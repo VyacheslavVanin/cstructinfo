@@ -1,8 +1,9 @@
 #pragma once
-#include "myparamnames.hpp"
-#include "vvvclanghelper.hpp"
 #include <boost/property_tree/ptree.hpp>
 #include <clang/Analysis/AnalysisContext.h>
+#include "stdhelper/containerhelper.hpp"
+#include "myparamnames.hpp"
+#include "vvvclanghelper.hpp"
 #include "collectfunctions.hpp"
 #include "collectstructs.hpp"
 
@@ -24,6 +25,7 @@ public:
 
     virtual void HandleTranslationUnit(clang::ASTContext& Context)
     {
+        using namespace vvv::helpers;
         const auto needStructs = !contain(params, PARAM_NAME_NO_STRUCTS);
         const auto needFunctions = !contain(params, PARAM_NAME_NO_FUNCS);
         const auto declsInMain = contain(params, PARAM_NAME_MAIN_ONLY)

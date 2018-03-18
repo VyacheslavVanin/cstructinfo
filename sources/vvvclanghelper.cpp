@@ -1,7 +1,9 @@
 #include "vvvclanghelper.hpp"
+#include "stdhelper/containerhelper.hpp"
 #include <sstream>
 
 using namespace clang;
+using namespace vvv::helpers;
 
 std::string getComment(const Decl* d)
 {

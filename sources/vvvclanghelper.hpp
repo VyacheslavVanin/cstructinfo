@@ -1,6 +1,5 @@
 #ifndef VVVCLANGHELPER_HPP
 #define VVVCLANGHELPER_HPP
-#include "vvvstlhelper.hpp"
 #include <clang/AST/AST.h>
 #include <clang/AST/ASTConsumer.h>
 #include <clang/AST/RecursiveASTVisitor.h>
