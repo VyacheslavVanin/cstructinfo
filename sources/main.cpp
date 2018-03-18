@@ -24,7 +24,7 @@ void clangFlowChart(const clang::FunctionDecl* d)
     // std::unique_ptr<CFG> fcfg = clang::CFG::buildCFG(d,d,Context);
 }
 
-int main(int argc, char** argv)
+int main(int argc, const char** argv)
 {
     return StructAndFuncInfoCollector(argc, argv);
 }
