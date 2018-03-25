@@ -29,7 +29,11 @@
 # For more information, please refer to <http://unlicense.org/>
 
 import os
+import subprocess
 import ycm_core
+
+p = subprocess.Popen('gcc -dumpversion', stdout=subprocess.PIPE, shell=True)
+gcc_version = p.stdout.read().decode().strip()
 
 # These are the compilation flags that will be used in case there's no
 # compilation database set (by default, one is not set).
@@ -61,11 +65,11 @@ flags = [
 '-x',
 'c++',
 '-isystem',
-'/usr/include/c++/6.2.1',
+'/usr/include/c++/{}'.format(gcc_version),
 '-isystem',
-'/usr/lib/gcc/x86_64-pc-linux-gnu/6.2.1/include',
+'/usr/lib/gcc/x86_64-pc-linux-gnu/{}/include'.format(gcc_version),
 '-isystem',
-'/usr/lib/gcc/x86_64-pc-linux-gnu/6.2.1/include-fixed'
+'/usr/lib/gcc/x86_64-pc-linux-gnu/{}/include-fixed'.format(gcc_version),
 '-isystem',
 '/usr/include',
 '-isystem',
