@@ -1,8 +1,9 @@
 #include "collectstructs.hpp"
-#include "stdhelper/containerhelper.hpp"
+#include <clanghelper/stdhelper/containerhelper.hpp>
+#include <clanghelper/vvvclanghelper.hpp>
+
 #include "myparamnames.hpp"
 #include "vvvptreehelper.hpp"
-#include "vvvclanghelper.hpp"
 #include "collectfunctions.hpp"
 
 using namespace clang;

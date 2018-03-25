@@ -4,11 +4,18 @@ set (CMAKE_CXX_STANDARD 14)
 
 find_package(LLVM REQUIRED)
 
-include_directories(${LLVM_INCLUDE_DIRS} sources .)
+include_directories(${LLVM_INCLUDE_DIRS}
+                    clanghelper/stdhelper
+                    clanghelper
+                    sources
+                    .)
 
 # Set Source files
-file(GLOB_RECURSE SRCS sources/*.cpp)
-file(GLOB_RECURSE HDRS sources/*.h sources/*.hpp)
+file(GLOB_RECURSE SRCS sources/*.cpp clanghelper/*.cpp)
+file(GLOB_RECURSE HDRS sources/*.h
+                       sources/*.hpp
+                       clanghelper/*.hpp
+                       clanghelper/*.h)
 
 add_executable(cstructinfo ${SRCS} ${HDRS})
 

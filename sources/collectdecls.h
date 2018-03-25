@@ -1,9 +1,11 @@
 #pragma once
 #include <boost/property_tree/ptree.hpp>
-#include <clang/Analysis/AnalysisContext.h>
-#include "stdhelper/containerhelper.hpp"
+
+#include <clang/Analysis/AnalysisDeclContext.h>
+
+#include "clanghelper/stdhelper/containerhelper.hpp"
+#include "clanghelper/vvvclanghelper.hpp"
 #include "myparamnames.hpp"
-#include "vvvclanghelper.hpp"
 #include "collectfunctions.hpp"
 #include "collectstructs.hpp"
 
