@@ -3,6 +3,8 @@ project(cstructinfo)
 set (CMAKE_CXX_STANDARD 14)
 
 find_package(LLVM REQUIRED)
+include(FindPkgConfig)
+pkg_search_module(JSONCPP REQUIRED jsoncpp)
 
 include_directories(${LLVM_INCLUDE_DIRS}
                     clanghelper/stdhelper
@@ -25,4 +27,4 @@ set(CLANG_LIBS
     clangEdit clangAST clangLex clangBasic clang)
 
 target_link_libraries(cstructinfo ${CLANG_LIBS} ${CLANG_LIBS}
-    LLVM LLVMSupport LLVMOption LLVMMC)
+    LLVM LLVMSupport LLVMOption LLVMMC ${JSONCPP_LIBRARIES})
