@@ -33,32 +33,35 @@ inline Json::Value to_json(const std::vector<T>& v)
 
 } // namespace
 
+using vvv::helpers::contain;
+
 struct DeclCollector {
     DeclCollector(int argc, const char** argv)
         : args(argc, argv, ALL_PARAMS), functions(Json::arrayValue),
-          structs(Json::arrayValue)
+          structs(Json::arrayValue),
+          main_only(contain(args.getCustomFlags(), PARAM_NAME_MAIN_ONLY)),
+          with_funcs(!contain(args.getCustomFlags(), PARAM_NAME_NO_FUNCS)),
+          with_structs(!contain(args.getCustomFlags(), PARAM_NAME_NO_STRUCTS)),
+          with_sizes(!contain(args.getCustomFlags(), PARAM_NAME_NO_SIZES)),
+          with_source(contain(args.getCustomFlags(), PARAM_NAME_WITH_SOURCE))
     {
     }
 
     void operator()(const clang::Decl* decl)
     {
         using namespace vvv::helpers;
-        const auto& flags = args.getCustomFlags();
-        const auto& main_only = contain(flags, PARAM_NAME_MAIN_ONLY);
-        const auto& need_functions = !contain(flags, PARAM_NAME_NO_FUNCS);
-        const auto& need_structs = !contain(flags, PARAM_NAME_NO_STRUCTS);
 
         if (isSystemDecl(decl))
             return;
         if (main_only && !isInMainFile(decl))
             return;
 
-        if (need_functions && isNonTemplateFunction(decl)) {
+        if (with_funcs && isNonTemplateFunction(decl)) {
             const auto* func = decl->getAsFunction();
             addFunction(func);
             return;
         }
-        if (need_structs && isRecord(decl)) {
+        if (with_structs && isRecord(decl)) {
             addRecord(static_cast<const clang::RecordDecl*>(decl));
             return;
         }
@@ -81,10 +84,6 @@ struct DeclCollector {
 
     Json::Value to_json(const clang::FunctionDecl* func)
     {
-        using namespace vvv::helpers;
-        const auto& flags = args.getCustomFlags();
-        const auto& with_source = contain(flags, PARAM_NAME_WITH_SOURCE);
-
         const auto& name = getDeclName(func);
         const auto& docs = getDoxyComments(func);
         Json::Value ret;
@@ -171,11 +170,6 @@ struct DeclCollector {
 
     Json::Value to_json(const clang::RecordDecl* decl)
     {
-        using namespace vvv::helpers;
-        const auto& flags = args.getCustomFlags();
-        const auto& with_source = contain(flags, PARAM_NAME_WITH_SOURCE);
-        const auto& with_sizes = !contain(flags, PARAM_NAME_NO_SIZES);
-
         Json::Value ret;
         ret["name"] = getDeclName(decl);
         ret["comment"] = getComment(decl);
@@ -194,6 +188,12 @@ struct DeclCollector {
     CxxToolArgs args;
     Json::Value functions;
     Json::Value structs;
+
+    bool main_only = false;
+    bool with_funcs = true;
+    bool with_structs = true;
+    bool with_sizes = true;
+    bool with_source = false;
 };
 
 void printHelpIfNeeded(const std::vector<std::string>& params)
