@@ -168,7 +168,8 @@ struct DeclCollector {
         return ret;
     }
 
-    Json::Value makeMethods(const clang::RecordDecl* decl) {
+    Json::Value makeMethods(const clang::RecordDecl* decl)
+    {
         Json::Value ret(Json::arrayValue);
         for (const auto& f : getStructMethods(decl)) {
             ret.append(to_json(f));
@@ -228,6 +229,22 @@ void printHelpIfNeeded(const std::vector<std::string>& params)
     return;
 }
 
+Json::Value to_json(DeclCollector&& d)
+{
+    Json::Value result;
+    result["functions"] = std::move(d.functions);
+    result["structs"] = std::move(d.structs);
+    return result;
+}
+
+void print_json(const Json::Value& value)
+{
+    auto writer = Json::StreamWriterBuilder();
+    writer["indentation"] = "";
+    writer.newStreamWriter()->write(value, &std::cout);
+    std::cout << std::endl;
+}
+
 int main(int argc, const char** argv)
 {
     printHelpIfNeeded(argstoarray(argc, argv));
@@ -236,13 +253,8 @@ int main(int argc, const char** argv)
     visit_decls(argc, argv, [&d](const clang::Decl* decl) { d(decl); },
                 ALL_PARAMS);
 
-    Json::Value result;
-    result["functions"] = std::move(d.functions);
-    result["structs"] = std::move(d.structs);
+    const auto& result = to_json(std::move(d));
+    print_json(result);
 
-    auto writer = Json::StreamWriterBuilder();
-    writer["indentation"] = "";
-    writer.newStreamWriter()->write(result, &std::cout);
-    std::cout << std::endl;
     return 0;
 }
