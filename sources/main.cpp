@@ -168,6 +168,14 @@ struct DeclCollector {
         return ret;
     }
 
+    Json::Value makeMethods(const clang::RecordDecl* decl) {
+        Json::Value ret(Json::arrayValue);
+        for (const auto& f : getStructMethods(decl)) {
+            ret.append(to_json(f));
+        }
+        return ret;
+    }
+
     Json::Value to_json(const clang::RecordDecl* decl)
     {
         Json::Value ret;
@@ -175,6 +183,7 @@ struct DeclCollector {
         ret["comment"] = getComment(decl);
         ret["location"] = getLocation(decl);
         ret["fields"] = makeFields(decl, with_sizes);
+        ret["methods"] = makeMethods(decl);
         if (with_source)
             ret["source"] = decl2str(decl);
         return ret;
