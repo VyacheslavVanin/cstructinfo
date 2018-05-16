@@ -240,7 +240,9 @@ int main(int argc, const char** argv)
     result["functions"] = std::move(d.functions);
     result["structs"] = std::move(d.structs);
 
-    Json::StreamWriterBuilder().newStreamWriter()->write(result, &std::cout);
+    auto writer = Json::StreamWriterBuilder();
+    writer["indentation"] = "";
+    writer.newStreamWriter()->write(result, &std::cout);
     std::cout << std::endl;
     return 0;
 }
