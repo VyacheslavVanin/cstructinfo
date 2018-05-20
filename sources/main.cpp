@@ -96,7 +96,7 @@ struct DeclCollector {
         ret["location"] = getLocation(func);
 
         if (with_source)
-            ret["source"] = decl2str(func);
+            ret["source"] = to_string(func);
         return ret;
     }
 
@@ -186,7 +186,7 @@ struct DeclCollector {
         ret["fields"] = makeFields(decl, with_sizes);
         ret["methods"] = makeMethods(decl);
         if (with_source)
-            ret["source"] = decl2str(decl);
+            ret["source"] = to_string(decl);
         return ret;
     }
 
