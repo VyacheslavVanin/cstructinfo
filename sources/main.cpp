@@ -20,7 +20,7 @@ const std::vector<std::string> ALL_PARAMS = {
 
 template <typename T>
 inline Json::Value to_json(const std::vector<T>& v);
-inline Json::Value to_json(uint64_t v) { return v; }
+inline Json::Value to_json(uint64_t v) { return Json::UInt64(v); }
 
 template <typename T>
 inline Json::Value to_json(const std::vector<T>& v)
@@ -148,7 +148,7 @@ struct DeclCollector {
             return;
 
         const auto& astctx = decl->getASTContext();
-        out["builtin"] = astctx.getTypeSize(type);
+        out["builtin"] = ::to_json(astctx.getTypeSize(type));
     }
 
     Json::Value makeFields(const clang::RecordDecl* decl, bool with_sizes)
